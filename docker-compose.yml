@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0  # 사용할 MySQL 버전
+    restart: on-failure  # 컨테이너가 실패 시 자동 재시작
+    container_name: artmo-db  # 컨테이너 이름
+    environment:
+      MYSQL_ROOT_PASSWORD: artmo  # MySQL root 사용자 비밀번호
+      MYSQL_DATABASE: artmo  # 기본으로 생성할 데이터베이스
+      MYSQL_USER: artmo  # 추가 사용자
+      MYSQL_PASSWORD: artmo  # 추가 사용자의 비밀번호
+    ports:
+      - "33306:3306"  # 호스트와 컨테이너의 포트 매핑
+    volumes:
+      - mysql_data:/var/lib/mysql  # 데이터 영속성을 위한 볼륨
+
+volumes:
+  mysql_data:
+    driver: local
