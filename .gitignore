@@ -1,5 +1,5 @@
 # Git Ignore Template
-
+.idea/**
 ### Build Directories ###
 build/**
 !**/src/main/**/build/
@@ -19,7 +19,7 @@ node_modules/
 
 ### IDE Specific ###
 # IntelliJ IDEA
-.idea/**
+
 *.iws
 *.iml
 *.ipr
