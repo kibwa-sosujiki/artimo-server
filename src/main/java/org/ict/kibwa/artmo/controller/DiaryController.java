@@ -5,6 +5,7 @@ import org.ict.kibwa.artmo.dto.DiaryDto;
 import org.ict.kibwa.artmo.entity.Diary;
 import org.ict.kibwa.artmo.service.DiaryService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,8 +19,8 @@ public class DiaryController {
     private final DiaryService diaryService;
 
     @GetMapping("")
-    public String index() {
-        return "redirect:/diary/sample";
+    public RedirectView index() {
+        return new RedirectView("/diary/sample");
     }
 
     @GetMapping("/sample")
