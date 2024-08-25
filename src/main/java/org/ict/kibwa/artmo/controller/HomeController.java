@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
-@RequestMapping("/diary")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class HomeController {
 
