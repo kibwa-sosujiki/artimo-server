@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: artmo
+
+  datasource:
+    url: jdbc:mysql://localhost:33306/<DBNAME>?serverTimezone=Asia/Seoul
+    username: <USERNAME>
+    password: <PASSWORD>
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # Or 'create', 'create-drop', 'validate' based on your needs
+    show-sql: true  # Set to false to disable SQL logging
+    properties:
+      hibernate:
+        format_sql: true  # Pretty-print SQL queries
+        use_sql_comments: true  # Add comments to SQL queries
+        ddl-auto: validate  # or 'none'
+      show-sql: true  # Log SQL statements
+
+  devtools:
+    livereload:
+      enabled: true
+
+storage:
+  dir: storage
+
+
