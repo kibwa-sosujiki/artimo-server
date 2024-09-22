@@ -98,6 +98,6 @@ public class DiaryController {
 
     @GetMapping("/test")
     public String testCode(){
-        return "Hello World!";
+        return "Hello World!!!!";
     }
 }
