@@ -21,13 +21,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Make application.yml
+        run: |
+          mkdir -p ./src/main/resources
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v3
         with:
           arguments: clean bootJar
 
       - name: docker image build
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/artmo:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/github-actions-demo .
 
       - name: docker login
         uses: docker/login-action@v2
@@ -36,11 +41,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: docker Hub push
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/artmo:latest
-
-      - name: Run Docker Container
-        run: |
-          docker run -e DB_URL=${{ secrets.DB_URL }} \
-                     -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-                     -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-                     -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/artmo:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/github-actions-demo
