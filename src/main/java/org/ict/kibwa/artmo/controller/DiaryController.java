@@ -95,4 +95,9 @@ public class DiaryController {
                 .title(diary.getTitle())
                 .build();
     }
+
+    @GetMapping("/test")
+    public String testCode(){
+        return "Hello World!";
+    }
 }
