@@ -1,9 +1,11 @@
 package org.ict.kibwa.artmo.controller;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.ict.kibwa.artmo.dto.DiaryDto;
 import org.ict.kibwa.artmo.entity.Diary;
 import org.ict.kibwa.artmo.service.DiaryService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -48,16 +50,16 @@ public class DiaryController {
                 .emotionType(emotionType)
                 .title(title)
                 .contents(content)
-                .imgUrl("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg")
-                .vidUrl("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4")
+                 //.imgUrl("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg")
+                 //.vidUrl("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4")
                 .build();
 
         diary = diaryService.save(diary);
 
         return DiaryDto.builder()
                 .id(diary.getDiaryId())
-                .sources(Collections.singletonList(diary.getVidUrl()))
-                .thumb(diary.getImgUrl())
+                // .sources(Collections.singletonList(diary.getVidUrl()))
+                // .thumb(diary.getImgUrl())
                 .title(diary.getTitle())
                 .build();
     }
@@ -72,8 +74,8 @@ public class DiaryController {
         // 모든 다이어리 조회 결과를 diaryDtoList로 변환 후 JSON 형태로 반환
         return diaryList.stream().map(diary -> DiaryDto.builder()
                 .id(diary.getDiaryId())
-                .sources(Collections.singletonList(diary.getVidUrl()))
-                .thumb(diary.getImgUrl())
+                 //.sources(Collections.singletonList(diary.getVidUrl()))
+                 //.thumb(diary.getImgUrl())
                 .title(diary.getTitle())
                 .build()).toList();
     }
@@ -90,14 +92,18 @@ public class DiaryController {
 
         return DiaryDto.builder()
                 .id(diary.getDiaryId())
-                .sources(Collections.singletonList(diary.getVidUrl()))
-                .thumb(diary.getImgUrl())
+                 //.sources(Collections.singletonList(diary.getVidUrl()))
+                 //.thumb(diary.getImgUrl())
                 .title(diary.getTitle())
                 .build();
     }
 
-    @GetMapping("/test")
-    public String testCode(){
-        return "Hello World!!!!";
+    /**
+     * Diary 작성
+     */
+    @PostMapping("/create")
+    public ResponseEntity<Diary> createDiary(@RequestBody Diary diary) {
+        Diary createdDiary = diaryService.save(diary);
+        return ResponseEntity.ok(createdDiary);
     }
 }
