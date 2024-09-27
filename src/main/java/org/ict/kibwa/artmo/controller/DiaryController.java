@@ -36,34 +36,6 @@ public class DiaryController {
                 .build();
     }
 
-
-    @PostMapping("/new")
-    public DiaryDto createDiary(@RequestParam String emotionType, @RequestParam String title, @RequestParam String content) {
-
-        //TODO: image 생성, video 생성
-
-        System.out.println(emotionType);
-        System.out.println(title);
-        System.out.println(content);
-
-        Diary diary = Diary.builder()
-                .emotionType(emotionType)
-                .title(title)
-                .contents(content)
-                 //.imgUrl("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg")
-                 //.vidUrl("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4")
-                .build();
-
-        diary = diaryService.save(diary);
-
-        return DiaryDto.builder()
-                .id(diary.getDiaryId())
-                // .sources(Collections.singletonList(diary.getVidUrl()))
-                // .thumb(diary.getImgUrl())
-                .title(diary.getTitle())
-                .build();
-    }
-
     @GetMapping("/list")
     public List<DiaryDto> findAllHistory() {
 
