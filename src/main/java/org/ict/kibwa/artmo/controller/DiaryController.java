@@ -261,8 +261,6 @@ public class DiaryController {
         logger.debug("gptResponse: {}", gptResponse);
         logger.debug("Generated Image URL: {}", imageUrl);
 
-}
-
         // Step 5: 폴링을 통해 비디오 생성 완료될 때까지 대기
         byte[] videoData = pollForVideoResult(videoId);
 
@@ -270,6 +268,7 @@ public class DiaryController {
         return ResponseEntity.ok()
                 .header("Content-Type", "video/mp4")
                 .body(videoData);
+
     }
 
     private byte[] pollForVideoResult(String videoId) {
