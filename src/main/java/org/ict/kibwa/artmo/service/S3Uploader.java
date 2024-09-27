@@ -23,7 +23,7 @@ public class S3Uploader {
 
     private final AmazonS3 amazonS3;
 
-    @Value("${aws.s3['bucket-name']}")
+    @Value("${aws.s3.bucket-name}")
     private String bucket;
 
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
