@@ -24,3 +24,8 @@ spring:
 
 storage:
   dir: storage
+
+logging:
+  level:
+    root: INFO
+    org.ict.kibwa.artmo: DEBUG   # 해당 패키지의 로그 레벨을 DEBUG로 설정
