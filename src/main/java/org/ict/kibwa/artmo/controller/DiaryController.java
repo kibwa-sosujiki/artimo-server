@@ -1,5 +1,8 @@
 package org.ict.kibwa.artmo.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +12,16 @@ import org.ict.kibwa.artmo.dto.DiaryDto;
 import org.ict.kibwa.artmo.entity.Diary;
 import org.ict.kibwa.artmo.service.DiaryService;
 import org.ict.kibwa.artmo.service.S3Uploader;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -96,20 +104,23 @@ public class DiaryController {
         return "test";
     }
 
-    /**
-     * Diary 작성
-     */
-    @PostMapping("/create")
+    @Operation(summary = "일기 작성")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Diary> createDiary(
-            @RequestPart("diary") Diary diary, // 프론트에서 보낸 일기 정보
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile){ // 프론트에서 보낸 이미지 파일
+            @RequestPart("diary") String diaryData, // JSON 문자열로 일기 데이터를 받음
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
+            // JSON 문자열을 Diary 객체로 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            Diary diary = objectMapper.readValue(diaryData, Diary.class);
+
             // 이미지 파일이 있으면 S3에 업로드 후 이미지 URL을 Diary 객체에 설정
             if (imageFile != null && !imageFile.isEmpty()) {
                 String imageUrl = s3Uploader.upload(imageFile, "diary-images");  // S3에 이미지 업로드
                 diary.setDimgUrl(imageUrl);  // 이미지 URL을 Diary 객체에 설정
             }
+
             // Diary 저장
             Diary createdDiary = diaryService.save(diary);
             return ResponseEntity.ok(createdDiary);  // 작성된 Diary 객체를 반환
@@ -249,6 +260,8 @@ public class DiaryController {
         logger.debug("contents: {}", contents);
         logger.debug("gptResponse: {}", gptResponse);
         logger.debug("Generated Image URL: {}", imageUrl);
+
+}
 
         // Step 5: 폴링을 통해 비디오 생성 완료될 때까지 대기
         byte[] videoData = pollForVideoResult(videoId);
