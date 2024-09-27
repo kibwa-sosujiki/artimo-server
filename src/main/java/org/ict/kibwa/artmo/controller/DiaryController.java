@@ -76,6 +76,11 @@ public class DiaryController {
                 .build();
     }
 
+    @GetMapping("/test")
+    public String test(){
+        return "test";
+    }
+
     /**
      * Diary 작성
      */
@@ -99,4 +104,6 @@ public class DiaryController {
             return ResponseEntity.status(500).body(null);
         }
     }
+
 }
+
