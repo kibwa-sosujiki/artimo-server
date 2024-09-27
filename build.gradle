@@ -30,8 +30,8 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    implementation 'com.google.code.gson:gson:2.7'
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-    implementation 'software.amazon.awssdk:s3'
 
 }
 
