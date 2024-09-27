@@ -2,6 +2,7 @@ package org.ict.kibwa.artmo.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.ApiOperation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,9 +85,7 @@ public class DiaryController {
         return "test";
     }
 
-    /**
-     * Diary 작성
-     */
+    @ApiOperation(value = "일기 작성")
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Diary> createDiary(
             @RequestPart("diary") String diaryData, // JSON 문자열로 일기 데이터를 받음
