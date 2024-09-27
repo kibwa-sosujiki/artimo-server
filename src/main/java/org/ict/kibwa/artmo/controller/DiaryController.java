@@ -1,5 +1,7 @@
 package org.ict.kibwa.artmo.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +9,7 @@ import org.ict.kibwa.artmo.dto.DiaryDto;
 import org.ict.kibwa.artmo.entity.Diary;
 import org.ict.kibwa.artmo.service.DiaryService;
 import org.ict.kibwa.artmo.service.S3Uploader;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -84,17 +87,22 @@ public class DiaryController {
     /**
      * Diary 작성
      */
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Diary> createDiary(
-            @RequestPart("diary") Diary diary, // 프론트에서 보낸 일기 정보
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile){ // 프론트에서 보낸 이미지 파일
+            @RequestPart("diary") String diaryData, // JSON 문자열로 일기 데이터를 받음
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
+            // JSON 문자열을 Diary 객체로 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            Diary diary = objectMapper.readValue(diaryData, Diary.class);
+
             // 이미지 파일이 있으면 S3에 업로드 후 이미지 URL을 Diary 객체에 설정
             if (imageFile != null && !imageFile.isEmpty()) {
                 String imageUrl = s3Uploader.upload(imageFile, "diary-images");  // S3에 이미지 업로드
                 diary.setDimgUrl(imageUrl);  // 이미지 URL을 Diary 객체에 설정
             }
+
             // Diary 저장
             Diary createdDiary = diaryService.save(diary);
             return ResponseEntity.ok(createdDiary);  // 작성된 Diary 객체를 반환
@@ -104,6 +112,7 @@ public class DiaryController {
             return ResponseEntity.status(500).body(null);
         }
     }
+
 
 }
 
