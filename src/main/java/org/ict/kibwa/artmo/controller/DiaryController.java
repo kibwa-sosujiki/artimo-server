@@ -2,13 +2,17 @@ package org.ict.kibwa.artmo.controller;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.ict.kibwa.artmo.dto.DiaryDto;
 import org.ict.kibwa.artmo.entity.Diary;
 import org.ict.kibwa.artmo.service.DiaryService;
+import org.ict.kibwa.artmo.service.S3Uploader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -16,9 +20,11 @@ import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/diary")
 @RequiredArgsConstructor
+@Slf4j
 public class DiaryController {
 
     private final DiaryService diaryService;
+    private final S3Uploader s3Uploader;
 
     @GetMapping("")
     public RedirectView index() {
@@ -74,8 +80,23 @@ public class DiaryController {
      * Diary 작성
      */
     @PostMapping("/create")
-    public ResponseEntity<Diary> createDiary(@RequestBody Diary diary) {
-        Diary createdDiary = diaryService.save(diary);
-        return ResponseEntity.ok(createdDiary);
+    public ResponseEntity<Diary> createDiary(
+            @RequestPart("diary") Diary diary, // 프론트에서 보낸 일기 정보
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile){ // 프론트에서 보낸 이미지 파일
+
+        try {
+            // 이미지 파일이 있으면 S3에 업로드 후 이미지 URL을 Diary 객체에 설정
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String imageUrl = s3Uploader.upload(imageFile, "diary-images");  // S3에 이미지 업로드
+                diary.setDimgUrl(imageUrl);  // 이미지 URL을 Diary 객체에 설정
+            }
+            // Diary 저장
+            Diary createdDiary = diaryService.save(diary);
+            return ResponseEntity.ok(createdDiary);  // 작성된 Diary 객체를 반환
+
+        } catch (IOException e) {
+            log.error("Diary 작성 중 오류 발생: {}", e.getMessage());
+            return ResponseEntity.status(500).body(null);
+        }
     }
 }
