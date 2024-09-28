@@ -94,12 +94,6 @@ public class DiaryController {
         }
     }
 
-    @Operation(summary = "전체 일기 내역")
-    @GetMapping("/list")
-    public ResponseEntity<List<Diary>> getDiaryList(){
-        List<Diary> diaryList = diaryService.getAll();
-        return ResponseEntity.ok(diaryList);
-    }
 
     /**
      * 텍스트 분석 및 감정 추출 API
