@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
 import org.ict.kibwa.artmo.dto.ImageDTO;
+import org.ict.kibwa.artmo.dto.VideoDTO;
 import org.ict.kibwa.artmo.entity.Image;
 import org.ict.kibwa.artmo.entity.Video;
 import org.ict.kibwa.artmo.service.ImageService;
@@ -479,11 +480,17 @@ public class DiaryController {
 
         // 모든 이미지 불러오기
         List<Image> images = imageService.getAllImages();
-        response.put("images", images);
+        List<ImageDTO> imageDTOs = images.stream()
+                .map(image -> new ImageDTO(image.getImgId(), image.getImgUrl()))
+                .collect(Collectors.toList());
+        response.put("images", imageDTOs);
 
         // 모든 동영상 불러오기
         List<Video> videos = videoService.getAllVideos();
-        response.put("videos", videos);
+        List<VideoDTO> videoDTOs = videos.stream()
+                .map(video -> new VideoDTO(video.getVideoId(), video.getVideoUrl()))
+                .collect(Collectors.toList());
+        response.put("videos", videoDTOs);
 
         return ResponseEntity.ok(response);
     }
