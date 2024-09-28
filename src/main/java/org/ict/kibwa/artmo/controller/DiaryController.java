@@ -521,16 +521,24 @@ public class DiaryController {
 
     @Operation(summary = "가장 최신 이미지와 동영상 조회")
     @GetMapping("/latest")
-    public ResponseEntity<Map<String, Object>> getLatestMedia(){
+    public ResponseEntity<Map<String, Object>> getLatestMedia() {
         Map<String, Object> response = new HashMap<>();
 
-        // 가장 최신 이미지 가져오기
+        // 최신 이미지 가져오기
         Image latestImage = imageService.getLatestImage();
-        response.put("latestImage", latestImage);
+        ImageDTO latestImageDTO = new ImageDTO(
+                latestImage.getImgId(),
+                latestImage.getImgUrl()  // Diary 정보 제외
+        );
+        response.put("latestImage", latestImageDTO);
 
-        // 가장 최신 동영상 가져오기
+        // 최신 동영상 가져오기
         Video latestVideo = videoService.getLatestVideo();
-        response.put("latestVideo", latestVideo);
+        VideoDTO latestVideoDTO = new VideoDTO(
+                latestVideo.getVideoId(),
+                latestVideo.getVideoUrl()  // Image 정보 제외
+        );
+        response.put("latestVideo", latestVideoDTO);
 
         return ResponseEntity.ok(response);
     }
