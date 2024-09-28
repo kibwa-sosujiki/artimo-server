@@ -25,9 +25,9 @@ public class Image implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "img_id")
-    private Integer imgId;
+    private Long imgId;
 
-    @Column(name = "img_url", length = 300)
+    @Column(name = "img_url", length = 1000)
     private String imgUrl;
 
     @ManyToOne

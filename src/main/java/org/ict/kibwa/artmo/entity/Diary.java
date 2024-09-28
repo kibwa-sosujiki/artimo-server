@@ -23,7 +23,7 @@ public class Diary implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "diary_id")
-    private Integer diaryId;
+    private Long diaryId;
 
     @Column(name = "emotion_type", length = 50)
     private String emotionType;

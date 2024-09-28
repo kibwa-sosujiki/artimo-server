@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
+import org.ict.kibwa.artmo.dto.ImageDTO;
 import org.ict.kibwa.artmo.entity.Image;
 import org.ict.kibwa.artmo.entity.Video;
 import org.ict.kibwa.artmo.service.ImageService;
@@ -45,6 +46,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/diary")
@@ -94,10 +96,33 @@ public class DiaryController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<Diary>> getDiaryList(){
+    public ResponseEntity<List<DiaryDto>> getDiaryList() {
         List<Diary> diaryList = diaryService.getAll();
-        return ResponseEntity.ok(diaryList);
+        List<DiaryDto> diaryDtoList = diaryList.stream()
+                .map(this::convertToDto)  // 변환 메서드 호출
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(diaryDtoList);
     }
+
+    private DiaryDto convertToDto(Diary diary) {
+        List<ImageDTO> imageDTOs = diary.getImages().stream()
+                .map(img -> ImageDTO.builder()
+                        .imgId(img.getImgId())
+                        .imgUrl(img.getImgUrl())
+                        .build())
+                .collect(Collectors.toList());
+
+        return DiaryDto.builder()
+                .diaryId(diary.getDiaryId())
+                .emotionType(diary.getEmotionType())
+                .title(diary.getTitle())
+                .contents(diary.getContents())
+                .caption(diary.getCaption())
+                .dimgUrl(diary.getDimgUrl())
+                .images(imageDTOs)
+                .build();
+    }
+
 
     /**
      * 텍스트 분석 및 감정 추출 API

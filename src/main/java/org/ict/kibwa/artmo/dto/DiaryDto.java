@@ -12,9 +12,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DiaryDto {
-    private int id;
-    private List<String> sources ;
-    private String thumb;
+    private Long diaryId;
+    private String emotionType;
     private String title;
+    private String contents;
+    private String caption;
+    private String dimgUrl;
+    private List<ImageDTO> images;
 }
 

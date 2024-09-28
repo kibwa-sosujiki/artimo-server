@@ -24,9 +24,9 @@ public class Video implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "video_id")
-    private Integer videoId;
+    private Long videoId;
 
-    @Column(name = "video_url", length = 300)
+    @Column(name = "video_url", length = 1000)
     private String videoUrl;
 
     @ManyToOne
