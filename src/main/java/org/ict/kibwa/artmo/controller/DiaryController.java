@@ -59,6 +59,13 @@ public class DiaryController {
     private final ImageService imageService;
     private final VideoService videoService;
     private final S3Uploader s3Uploader;
+
+    @Value("${openai.api-key}")
+    private String openaiApiKey;
+
+    @Value("${stability.api-key}")
+    private String stabilityApiKey;
+
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();  // 폴링 스케줄러 추가
     private ScheduledFuture<?> scheduledFuture;
 
@@ -164,7 +171,7 @@ public class DiaryController {
 
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer openai-key");
+        headers.set("Authorization", "Bearer " + openaiApiKey);
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
         // 요청 엔티티 생성
@@ -303,7 +310,7 @@ public class DiaryController {
 
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer openai-key");
+        headers.set("Authorization", "Bearer " + openaiApiKey);
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
         // 요청 엔티티 생성
@@ -375,11 +382,10 @@ public class DiaryController {
 
     private byte[] pollForVideoResult(String videoId) {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video/result/" + videoId;
-        String apiKey = "STA-KEY";
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);
+        headers.set("Authorization", "Bearer " + stabilityApiKey);
         headers.set("Accept", "video/*");
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
@@ -409,7 +415,6 @@ public class DiaryController {
      */
     private String startImageToVideoGeneration(String imageUrl) throws IOException {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video";
-        String apiKey = "STA-KEY";
 
         // 1. 이미지 다운로드 및 해상도 조정 (768x768으로 변경)
         String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 768, 768);
@@ -423,7 +428,7 @@ public class DiaryController {
         body.add("motion_bucket_id", "127");  // motion_bucket_id 기본 값
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);
+        headers.set("Authorization", "Bearer " + stabilityApiKey);
         headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
@@ -462,11 +467,10 @@ public class DiaryController {
     @GetMapping("/image-to-video/result/{id}")
     public ResponseEntity<String> getVideoGenerationResult(@PathVariable("id") String videoId) {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video/result/" + videoId;
-        String apiKey = "STA-KEY";
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);
+        headers.set("Authorization", "Bearer " + stabilityApiKey);
         headers.set("accept", "video/*");  // 비디오 파일 직접 반환
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
