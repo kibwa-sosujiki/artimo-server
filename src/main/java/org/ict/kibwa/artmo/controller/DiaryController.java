@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
 import org.ict.kibwa.artmo.entity.Image;
+import org.ict.kibwa.artmo.entity.Video;
 import org.ict.kibwa.artmo.service.ImageService;
+import org.ict.kibwa.artmo.service.VideoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +53,7 @@ public class DiaryController {
 
     private final DiaryService diaryService;
     private final ImageService imageService;
+    private final VideoService videoService;
     private final S3Uploader s3Uploader;
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();  // 폴링 스케줄러 추가
     private ScheduledFuture<?> scheduledFuture;
@@ -89,6 +92,7 @@ public class DiaryController {
         List<Diary> diaryList = diaryService.getAll();
         return ResponseEntity.ok(diaryList);
     }
+
     /**
      * 텍스트 분석 및 감정 추출 API
      */
@@ -393,5 +397,37 @@ public class DiaryController {
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
         }
+    }
+
+    @Operation(summary = "전체 이미지와 동영상 조회")
+    @GetMapping("all")
+    public ResponseEntity<Map<String, Object>> getAllMedia(){
+        Map<String, Object> response = new HashMap<>();
+
+        // 모든 이미지 불러오기
+        List<Image> images = imageService.getAllImages();
+        response.put("images", images);
+
+        // 모든 동영상 불러오기
+        List<Video> videos = videoService.getAllVideos();
+        response.put("videos", videos);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "가장 최신 이미지와 동영상 조회")
+    @GetMapping("/latest")
+    public ResponseEntity<Map<String, Object>> getLatestMedia(){
+        Map<String, Object> response = new HashMap<>();
+
+        // 가장 최신 이미지 가져오기
+        Image latestImage = imageService.getLatestImage();
+        response.put("latestImage", latestImage);
+
+        // 가장 최신 동영상 가져오기
+        Video latestVideo = videoService.getLatestVideo();
+        response.put("latestVideo", latestVideo);
+
+        return ResponseEntity.ok(response);
     }
 }
