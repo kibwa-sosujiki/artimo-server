@@ -182,12 +182,13 @@ public class DiaryController {
         image.setImgUrl(s3ImageUrl);
         image.setDiary(diary);
 
-        imageService.save(image);
+        Image savedImage = imageService.save(image);
 
         // 응답 생성
         Map<String, String> response = new HashMap<>();
         response.put("gptResponse", gptResponse); // GPT 응답 추가
         response.put("imageUrl", s3ImageUrl);  // 생성된 이미지 URL 반환
+        response.put("imageId", String.valueOf(savedImage.getImgId()));  // 저장된 이미지 ID 반환
 
         return ResponseEntity.ok(response);
     }
