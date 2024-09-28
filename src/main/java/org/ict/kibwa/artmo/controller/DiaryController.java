@@ -531,19 +531,27 @@ public class DiaryController {
     @GetMapping("/latest")
     public ResponseEntity<Map<String, Object>> getLatestMedia() {
         Map<String, Object> response = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
 
         // 최신 이미지 가져오기
         Image latestImage = imageService.getLatestImage();
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", latestImage.getImgId());
-        result.put("thumb", latestImage.getImgUrl());
+        if (latestImage != null) {
+            result.put("id", latestImage.getImgId());
+            result.put("thumb", latestImage.getImgUrl());
+        } else {
+            result.put("id", null);
+            result.put("thumb", "No image available");
+        }
 
         // 최신 동영상 가져오기
         Video latestVideo = videoService.getLatestVideo();
-        result.put("sources", latestVideo.getVideoUrl());  // 리스트 대신 단일 값
+        if (latestVideo != null) {
+            result.put("sources", latestVideo.getVideoUrl());
+        } else {
+            result.put("sources", "No video available");
+        }
 
         response.put("result", result);
-
         return ResponseEntity.ok(response);
     }
 
