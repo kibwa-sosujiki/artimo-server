@@ -504,20 +504,26 @@ public class DiaryController {
     public ResponseEntity<Map<String, Object>> getAllMedia(){
         Map<String, Object> response = new HashMap<>();
 
+        // 모든 이미지와 동영상을 통합 리스트로 반환
+        List<Map<String, Object>> mediaList = new ArrayList<>();
+
         // 모든 이미지 불러오기
         List<Image> images = imageService.getAllImages();
-        List<ImageDTO> imageDTOs = images.stream()
-                .map(image -> new ImageDTO(image.getImgId(), image.getImgUrl()))
-                .collect(Collectors.toList());
-        response.put("images", imageDTOs);
+        images.forEach(image -> {
+            Map<String, Object> media = new HashMap<>();
+            media.put("id", image.getImgId());  // 이미지 ID
+            media.put("thumb", image.getImgUrl());  // 썸네일 이미지 URL
 
-        // 모든 동영상 불러오기
-        List<Video> videos = videoService.getAllVideos();
-        List<VideoDTO> videoDTOs = videos.stream()
-                .map(video -> new VideoDTO(video.getVideoId(), video.getVideoUrl()))
-                .collect(Collectors.toList());
-        response.put("videos", videoDTOs);
+            // 해당 이미지와 관련된 동영상 추가
+            List<String> videoUrls = image.getVideos().stream()
+                    .map(Video::getVideoUrl)
+                    .collect(Collectors.toList());
+            media.put("sources", videoUrls);  // 동영상 URL 리스트
 
+            mediaList.add(media);
+        });
+
+        response.put("result", mediaList);
         return ResponseEntity.ok(response);
     }
 
@@ -528,20 +534,17 @@ public class DiaryController {
 
         // 최신 이미지 가져오기
         Image latestImage = imageService.getLatestImage();
-        ImageDTO latestImageDTO = new ImageDTO(
-                latestImage.getImgId(),
-                latestImage.getImgUrl()  // Diary 정보 제외
-        );
-        response.put("latestImage", latestImageDTO);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", latestImage.getImgId());
+        result.put("thumb", latestImage.getImgUrl());
 
         // 최신 동영상 가져오기
         Video latestVideo = videoService.getLatestVideo();
-        VideoDTO latestVideoDTO = new VideoDTO(
-                latestVideo.getVideoId(),
-                latestVideo.getVideoUrl()  // Image 정보 제외
-        );
-        response.put("latestVideo", latestVideoDTO);
+        result.put("sources", latestVideo.getVideoUrl());  // 리스트 대신 단일 값
+
+        response.put("result", result);
 
         return ResponseEntity.ok(response);
     }
+
 }
