@@ -16,7 +16,7 @@ public class DiaryService {
 
     // Retrieve a diary by ID
     @Transactional(readOnly = true)
-    public Optional<Diary> findById(Integer id) {
+    public Optional<Diary> findById(Long id) {
         return diaryRepository.findById(id);
     }
 
@@ -36,12 +36,6 @@ public class DiaryService {
     @Transactional
     public Diary save(Diary diary) {
         return diaryRepository.save(diary);
-    }
-
-    // Delete a diary by ID
-    @Transactional
-    public void deleteById(Integer id) {
-        diaryRepository.deleteById(id);
     }
 }
 

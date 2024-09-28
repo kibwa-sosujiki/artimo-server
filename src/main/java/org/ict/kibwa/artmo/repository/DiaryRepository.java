@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface DiaryRepository extends JpaRepository<Diary, Integer> {
+public interface DiaryRepository extends JpaRepository<Diary, Long> {
     // 가장 최근에 생성된 Diary를 찾는 메서드
     Optional<Diary> findTopByOrderByCreatedAtDesc();
 }

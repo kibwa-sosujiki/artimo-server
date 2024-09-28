@@ -1,9 +1,12 @@
 package org.ict.kibwa.artmo.controller;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
+import org.ict.kibwa.artmo.entity.Image;
+import org.ict.kibwa.artmo.service.ImageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +50,7 @@ import java.util.concurrent.ScheduledFuture;
 public class DiaryController {
 
     private final DiaryService diaryService;
+    private final ImageService imageService;
     private final S3Uploader s3Uploader;
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();  // 폴링 스케줄러 추가
     private ScheduledFuture<?> scheduledFuture;
@@ -150,8 +154,11 @@ public class DiaryController {
     /**
      * 텍스트 분석 및 감정 추출 후 이미지 생성 API
      */
-    @PostMapping("/emotion-image")
-    public ResponseEntity<Map<String, String>> analyzeEmotionAndGenerateImage(@RequestBody Map<String, String> requestBody) {
+    @PostMapping("/emotion-image/{diaryId}")
+    public ResponseEntity<Map<String, String>> analyzeEmotionAndGenerateImage(
+            @PathVariable("diaryId") Long diaryId,
+            @RequestBody Map<String, String> requestBody) throws IOException {
+
         String contents = requestBody.get("contents");
 
         // GPT API를 사용하여 텍스트에서 감정 분석을 수행 후 이미지 프롬프트로 바꿈
@@ -160,12 +167,47 @@ public class DiaryController {
         // DALL-E 3 이미지 생성 요청
         String imageUrl = generateImageFromDalle(gptResponse);
 
+        // 생성된 이미지를 S3에 업로드
+        String s3ImageUrl = uploadImageFromUrlToS3(imageUrl, "emotion-images");
+
+        // 일기 조회
+        Diary diary = diaryService.findById(diaryId).orElseThrow(()-> new RuntimeException("Diary not found"));
+
+        // Image 엔티티 생성 후 S3 URL 저장
+        Image image = new Image();
+        image.setImgUrl(s3ImageUrl);
+        image.setDiary(diary);
+
+        imageService.save(image);
+
         // 응답 생성
         Map<String, String> response = new HashMap<>();
         response.put("gptResponse", gptResponse); // GPT 응답 추가
-        response.put("imageUrl", imageUrl);  // 생성된 이미지 URL 반환
+        response.put("imageUrl", s3ImageUrl);  // 생성된 이미지 URL 반환
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 이미지 URL을 받아 바로 S3로 업로드 하는 함수
+     */
+    private String uploadImageFromUrlToS3(String imageUrl, String s3Path) throws IOException{
+        try (InputStream inputStream = new URL(imageUrl).openStream()) {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(inputStream.available());
+
+            // 이미지가 PNG일지, JPEG일지에 따라 Content-Type 설정 (기본적으로 PNG로 설정)
+            if (imageUrl.endsWith(".png")) {
+                metadata.setContentType("image/png");
+            } else if (imageUrl.endsWith(".jpg") || imageUrl.endsWith(".jpeg")) {
+                metadata.setContentType("image/jpeg");
+            } else {
+                metadata.setContentType("image/png");
+            }
+
+            String s3ImageUrl = s3Uploader.upload(inputStream, s3Path, metadata);
+            return s3ImageUrl;
+        }
     }
 
     /**
@@ -225,6 +267,7 @@ public class DiaryController {
                 .body(videoData);
 
     }
+
 
     private byte[] pollForVideoResult(String videoId) {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video/result/" + videoId;
