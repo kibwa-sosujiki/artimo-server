@@ -197,14 +197,11 @@ public class DiaryController {
      * 이미지 URL을 받아 바로 S3로 업로드 하는 함수
      */
     private String uploadImageFromUrlToS3(String imageUrl, String s3Path) throws IOException{
-        // 고유한 파일 이름 생성
-        String fileName = s3Uploader.createFileName(imageUrl, s3Path);
-
         try (InputStream inputStream = new URL(imageUrl).openStream()) {
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(inputStream.available());
 
-            // 이미지의 Content-Type 설정
+            // 이미지가 PNG일지, JPEG일지에 따라 Content-Type 설정 (기본적으로 PNG로 설정)
             if (imageUrl.endsWith(".png")) {
                 metadata.setContentType("image/png");
             } else if (imageUrl.endsWith(".jpg") || imageUrl.endsWith(".jpeg")) {
@@ -213,8 +210,7 @@ public class DiaryController {
                 metadata.setContentType("image/png");
             }
 
-            // 고유한 파일 이름을 포함하여 S3에 업로드
-            String s3ImageUrl = s3Uploader.upload(inputStream, fileName, metadata);
+            String s3ImageUrl = s3Uploader.upload(inputStream, s3Path, metadata);
             return s3ImageUrl;
         }
     }

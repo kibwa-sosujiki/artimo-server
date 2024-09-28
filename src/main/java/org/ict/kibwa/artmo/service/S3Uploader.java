@@ -58,7 +58,7 @@ public class S3Uploader {
 
 
     // 파일 이름을 생성하는 메서드 (UUID 포함)
-    public String createFileName(String originalFilename, String dirName) {
+    private String createFileName(String originalFilename, String dirName) {
         String uuid = UUID.randomUUID().toString();
         return dirName + "/" + uuid + "_" + originalFilename.replaceAll("\\s", "_");
     }
