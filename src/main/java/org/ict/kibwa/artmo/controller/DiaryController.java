@@ -188,9 +188,9 @@ public class DiaryController {
         // 결과를 새로운 형식으로 변환하여 반환
         String finalResponse = "Generate an image based on the user's emotions: ( "
                 + gptContent
-                + " ). Use Yellow for positive emotions, Green for mental rest, and Blue for sadness. "
-                + "The image should depict a beautiful, European-style landscape or nature scene with a soft oil painting texture or a realistic feel. "
-                + "Ensure the artwork is high-quality, visually appealing, and evokes a sense of peace and comfort. never including text.";
+                + " ). Use yellow for positive emotions, green for mental rest, and blue for sadness. "
+                + "The image should be beautifully depicted like a piece of artwork, with a soft and gentle feel. It must not include any people or text. Focus on depicting natural elements. "
+                + "The image should look like it was hand-drawn, not artificial. It should not be overly three-dimensional or evoke any discomfort.";
 
         return finalResponse;  // 변환된 최종 결과를 반환
     }
