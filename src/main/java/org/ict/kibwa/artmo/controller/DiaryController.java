@@ -53,20 +53,6 @@ public class DiaryController {
 
     private static final Logger logger = LoggerFactory.getLogger(DiaryController.class);
 
-    @GetMapping("/list")
-    public List<DiaryDto> findAllHistory() {
-
-        // TODO: 그동안 생성된 모든 Diary 정보 리턴하기
-
-        List<Diary> diaryList = diaryService.getAll();
-
-        // 모든 다이어리 조회 결과를 diaryDtoList로 변환 후 JSON 형태로 반환
-        return diaryList.stream().map(diary -> DiaryDto.builder()
-                .id(diary.getDiaryId())
-                .title(diary.getTitle())
-                .build()).toList();
-    }
-
     @Operation(summary = "일기 작성")
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Diary> createDiary(
@@ -94,7 +80,11 @@ public class DiaryController {
         }
     }
 
-
+    @GetMapping("/list")
+    public ResponseEntity<List<Diary>> getDiaryList(){
+        List<Diary> diaryList = diaryService.getAll();
+        return ResponseEntity.ok(diaryList);
+    }
     /**
      * 텍스트 분석 및 감정 추출 API
      */
