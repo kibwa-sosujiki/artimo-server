@@ -32,7 +32,6 @@ public class Video implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "img_id")
-    @JsonBackReference
     private Image image;
 
     @CreationTimestamp

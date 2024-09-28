@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -19,5 +20,8 @@ public class DiaryDto {
     private String caption;
     private String dimgUrl;
     private List<ImageDTO> images;
+    private Instant createdAt;
+    private Instant updatedAt;
+
 }
 

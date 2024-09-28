@@ -36,7 +36,6 @@ public class Image implements Serializable {
     private Diary diary;
 
     @OneToMany(mappedBy = "image", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
     private List<Video> videos;
 
     @CreationTimestamp

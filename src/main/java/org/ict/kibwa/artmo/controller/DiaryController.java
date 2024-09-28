@@ -121,6 +121,8 @@ public class DiaryController {
                 .caption(diary.getCaption())
                 .dimgUrl(diary.getDimgUrl())
                 .images(imageDTOs)
+                .createdAt(diary.getCreatedAt())
+                .updatedAt(diary.getUpdatedAt())
                 .build();
     }
 
