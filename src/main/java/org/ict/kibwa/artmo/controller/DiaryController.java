@@ -1,6 +1,8 @@
 package org.ict.kibwa.artmo.controller;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import org.ict.kibwa.artmo.entity.Diary;
 import org.ict.kibwa.artmo.service.DiaryService;
 import org.ict.kibwa.artmo.service.S3Uploader;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -35,9 +38,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,6 +58,11 @@ public class DiaryController {
     private final S3Uploader s3Uploader;
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();  // 폴링 스케줄러 추가
     private ScheduledFuture<?> scheduledFuture;
+
+    private final AmazonS3 amazonS3;
+
+    @Value("${aws.s3.bucket-name}")
+    private String bucket;
 
     private static final Logger logger = LoggerFactory.getLogger(DiaryController.class);
 
@@ -130,7 +136,7 @@ public class DiaryController {
 
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer GPT-KEY");
+        headers.set("Authorization", "Bearer openai-key");
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
         // 요청 엔티티 생성
@@ -149,7 +155,7 @@ public class DiaryController {
                 + gptContent
                 + " ). Use Yellow for positive emotions, Green for mental rest, and Blue for sadness. "
                 + "The image should depict a beautiful, European-style landscape or nature scene with a soft oil painting texture or a realistic feel. "
-                + "Ensure the artwork is high-quality, visually appealing, and evokes a sense of peace and comfort.";
+                + "Ensure the artwork is high-quality, visually appealing, and evokes a sense of peace and comfort. never including text.";
 
         return finalResponse;  // 변환된 최종 결과를 반환
     }
@@ -193,26 +199,67 @@ public class DiaryController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 이미지 URL을 받아 바로 S3로 업로드 하는 함수
-     */
-    private String uploadImageFromUrlToS3(String imageUrl, String s3Path) throws IOException{
-        try (InputStream inputStream = new URL(imageUrl).openStream()) {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(inputStream.available());
+    // 이미지 URL을 받아 바로 S3로 PNG 형식으로 변환하여 업로드하는 함수
+    private String uploadImageFromUrlToS3(String imageUrl, String s3Path) throws IOException {
+        log.info("Starting upload for image URL: {}", imageUrl);  // 이미지 URL 로그 추가
 
-            // 이미지가 PNG일지, JPEG일지에 따라 Content-Type 설정 (기본적으로 PNG로 설정)
-            if (imageUrl.endsWith(".png")) {
-                metadata.setContentType("image/png");
-            } else if (imageUrl.endsWith(".jpg") || imageUrl.endsWith(".jpeg")) {
-                metadata.setContentType("image/jpeg");
-            } else {
-                metadata.setContentType("image/png");
+        try (InputStream inputStream = new URL(imageUrl).openStream()) {
+            // 이미지 다운로드 및 BufferedImage로 변환
+            BufferedImage originalImage = ImageIO.read(inputStream);
+            if (originalImage == null) {
+                throw new IOException("Failed to download image from URL: " + imageUrl);
             }
 
-            String s3ImageUrl = s3Uploader.upload(inputStream, s3Path, metadata);
+            // BufferedImage를 PNG로 변환
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            ImageIO.write(originalImage, "png", os);
+            byte[] pngData = os.toByteArray();
+
+            // 변환된 PNG 이미지를 S3에 업로드
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(pngData.length);
+            metadata.setContentType("image/png");
+
+            // 파일 이름 생성 (경로 포함)
+            String fileName = createFileNameFromUrl(imageUrl, s3Path, "png");
+            log.info("Uploading to S3 with file name: {}", fileName);
+
+            // ByteArrayInputStream으로 S3에 업로드
+            try (InputStream byteInputStream = new ByteArrayInputStream(pngData)) {
+                amazonS3.putObject(new PutObjectRequest(bucket, fileName, byteInputStream, metadata));
+            }
+
+            // 업로드된 파일의 S3 URL 반환
+            String s3ImageUrl = amazonS3.getUrl(bucket, fileName).toString();
+            log.info("File successfully uploaded to S3 at URL: {}", s3ImageUrl);
+
             return s3ImageUrl;
         }
+    }
+
+    // 파일 이름을 생성할 때 확장자를 포함하여 생성하는 메서드
+    private String createFileNameFromUrl(String imageUrl, String s3Path, String extension) {
+        String uuid = UUID.randomUUID().toString();
+        return s3Path + "/" + uuid + "." + extension;
+    }
+
+    // 파일의 Content-Type을 감지하는 메서드
+    private String detectContentType(String imageUrl) {
+        if (imageUrl.endsWith(".png")) {
+            return "image/png";
+        } else if (imageUrl.endsWith(".jpg") || imageUrl.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else {
+            return "application/octet-stream";  // 알 수 없는 파일 형식의 경우 기본 값
+        }
+    }
+
+
+    // 이미지 URL에서 파일 이름 생성하는 메서드
+    private String createFileNameFromUrl(String imageUrl, String s3Path) {
+        String uuid = UUID.randomUUID().toString();
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+        return s3Path + "/" + uuid + "_" + fileName.replaceAll("\\s", "_");
     }
 
     /**
@@ -229,7 +276,7 @@ public class DiaryController {
 
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer DALLE-KEY");
+        headers.set("Authorization", "Bearer openai-key");
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
         // 요청 엔티티 생성
@@ -276,7 +323,7 @@ public class DiaryController {
 
     private byte[] pollForVideoResult(String videoId) {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video/result/" + videoId;
-        String apiKey = "STABILITY-KEY";
+        String apiKey = "STA-KEY";
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -310,7 +357,7 @@ public class DiaryController {
      */
     private String startImageToVideoGeneration(String imageUrl) throws IOException {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video";
-        String apiKey = "STABILITY-KEY";
+        String apiKey = "STA-KEY";
 
         // 1. 이미지 다운로드 및 해상도 조정 (768x768으로 변경)
         String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 768, 768);
@@ -363,7 +410,7 @@ public class DiaryController {
     @GetMapping("/image-to-video/result/{id}")
     public ResponseEntity<String> getVideoGenerationResult(@PathVariable("id") String videoId) {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video/result/" + videoId;
-        String apiKey = "STABILITY-KEY";  // Stability API Key
+        String apiKey = "STA-KEY";
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
