@@ -46,11 +46,10 @@ public class S3Uploader {
 
     // InputStream으로 업로드하는 메서드
     public String upload(InputStream inputStream, String fileName, ObjectMetadata metadata) {
-        amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
-
+        amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
         return amazonS3.getUrl(bucket, fileName).toString();
     }
+
 
     // 파일 이름을 생성하는 메서드 (UUID 포함)
     private String createFileName(String originalFilename, String dirName) {
