@@ -39,8 +39,7 @@ public class S3Uploader {
 
         // S3에 파일 업로드
         InputStream inputStream = multipartFile.getInputStream();
-        amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+        amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
 
         return amazonS3.getUrl(bucket, fileName).toString();  // 업로드된 파일 URL 반환
     }
