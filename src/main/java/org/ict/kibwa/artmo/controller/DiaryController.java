@@ -280,7 +280,6 @@ public class DiaryController {
         }
     }
 
-
     // 이미지 URL에서 파일 이름 생성하는 메서드
     private String createFileNameFromUrl(String imageUrl, String s3Path) {
         String uuid = UUID.randomUUID().toString();
@@ -319,32 +318,57 @@ public class DiaryController {
     /**
      * 텍스트 분석 후 이미지 생성, 그리고 이미지에서 비디오 생성 API
      */
-    @PostMapping("/text-to-video")
-    public ResponseEntity<byte[]> analyzeEmotionAndGenerateImageAndVideo(@RequestBody Map<String, String> requestBody) throws IOException {
-        String contents = requestBody.get("contents");
+    @PostMapping("/text-to-video/{diaryId}")
+    public ResponseEntity<Map<String, String>> analyzeEmotionAndGenerateImageAndVideo(
+            @PathVariable("diaryId") Long diaryId) throws IOException {
 
-        // Step 1: 텍스트 분석 및 감정 추출
+        // Step 1: 일기 조회 및 컨텐츠 추출
+        Diary diary = diaryService.findById(diaryId).orElseThrow(() -> new RuntimeException("Diary not found"));
+        String contents = diary.getContents();
+
+        // Step 2: 텍스트 분석 및 감정 추출
         String gptResponse = getEmotionAnalysisFromGPT(contents);
 
         // Step 3: DALL-E 3 이미지 생성 요청
         String imageUrl = generateImageFromDalle(gptResponse);
 
-        // Step 4: 이미지에서 비디오 생성 요청
-        String videoId = startImageToVideoGeneration(imageUrl);
+        // Step 4: 생성된 이미지를 S3에 업로드
+        String s3ImageUrl = uploadImageFromUrlToS3(imageUrl, "emotion-images");
 
-        logger.debug("contents: {}", contents);
-        logger.debug("gptResponse: {}", gptResponse);
-        logger.debug("Generated Image URL: {}", imageUrl);
+        // Step 5: 이미지 DB 저장
+        Image image = new Image();
+        image.setImgUrl(s3ImageUrl);
+        image.setDiary(diary);
+        Image savedImage = imageService.save(image);
 
-        // Step 5: 폴링을 통해 비디오 생성 완료될 때까지 대기
+        // Step 6: 이미지에서 비디오 생성 요청
+        String videoId = startImageToVideoGeneration(s3ImageUrl);
+
+        // Step 7: 비디오 생성 완료 대기
         byte[] videoData = pollForVideoResult(videoId);
 
-        // Step 6: 최종 비디오 파일 반환
-        return ResponseEntity.ok()
-                .header("Content-Type", "video/mp4")
-                .body(videoData);
+        // Step 8: 비디오 S3에 업로드
+        InputStream videoInputStream = new ByteArrayInputStream(videoData);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(videoData.length);
+        metadata.setContentType("video/mp4");
+        String s3VideoUrl = s3Uploader.upload(videoInputStream, "emotion-videos/" + savedImage.getImgId() + ".mp4", metadata);
 
+        // Step 9: 비디오 DB 저장
+        Video video = new Video();
+        video.setImage(savedImage);
+        video.setVideoUrl(s3VideoUrl);
+        videoService.save(video);
+
+        // 응답 생성
+        Map<String, String> response = new HashMap<>();
+        response.put("gptResponse", gptResponse); // GPT 응답 추가
+        response.put("imageUrl", s3ImageUrl);     // 생성된 이미지 URL 반환
+        response.put("videoUrl", s3VideoUrl);     // 생성된 비디오 URL 반환
+
+        return ResponseEntity.ok(response);
     }
+
 
 
     private byte[] pollForVideoResult(String videoId) {

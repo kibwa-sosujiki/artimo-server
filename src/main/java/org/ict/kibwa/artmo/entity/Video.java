@@ -30,7 +30,7 @@ public class Video implements Serializable {
     private String videoUrl;
 
     @ManyToOne
-    @JoinColumn(name = "img_id", nullable = false)
+    @JoinColumn(name = "img_id")
     private Image image;
 
     @CreationTimestamp
