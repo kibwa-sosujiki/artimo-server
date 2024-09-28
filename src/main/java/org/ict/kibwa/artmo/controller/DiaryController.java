@@ -53,22 +53,6 @@ public class DiaryController {
 
     private static final Logger logger = LoggerFactory.getLogger(DiaryController.class);
 
-    @GetMapping("")
-    public RedirectView index() {
-        return new RedirectView("/diary/sample");
-    }
-
-    @GetMapping("/sample")
-    public DiaryDto findSampleFile(@RequestParam(defaultValue = "") String title, @RequestParam(defaultValue = "") String content) {
-        // JSON 형태로 반환
-        return DiaryDto.builder()
-                .id(1)
-                .sources(Collections.singletonList("http://example.com/video.mp4"))
-                .thumb("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg")
-                .title("By Google")
-                .build();
-    }
-
     @GetMapping("/list")
     public List<DiaryDto> findAllHistory() {
 
@@ -81,27 +65,6 @@ public class DiaryController {
                 .id(diary.getDiaryId())
                 .title(diary.getTitle())
                 .build()).toList();
-    }
-
-    @GetMapping("/list/last")
-    public DiaryDto findLast() {
-
-        // TODO: 가장 마지막에 생성된 Diary 리턴하기
-
-        Diary diary = diaryService.findLast().orElseThrow(null);
-        if (diary == null) {
-            throw new NoSuchElementException("No diary found");
-        }
-
-        return DiaryDto.builder()
-                .id(diary.getDiaryId())
-                .title(diary.getTitle())
-                .build();
-    }
-
-    @GetMapping("/test")
-    public String test(){
-        return "test";
     }
 
     @Operation(summary = "일기 작성")
@@ -130,6 +93,14 @@ public class DiaryController {
             return ResponseEntity.status(500).body(null);
         }
     }
+
+    @Operation(summary = "전체 일기 내역")
+    @GetMapping("/list")
+    public ResponseEntity<List<Diary>> getDiaryList(){
+        List<Diary> diaryList = diaryService.getAll();
+        return ResponseEntity.ok(diaryList);
+    }
+
     /**
      * 텍스트 분석 및 감정 추출 API
      */
