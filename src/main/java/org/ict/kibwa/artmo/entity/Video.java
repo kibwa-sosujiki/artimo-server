@@ -1,5 +1,6 @@
 package org.ict.kibwa.artmo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class Video implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "img_id")
+    @JsonBackReference
     private Image image;
 
     @CreationTimestamp

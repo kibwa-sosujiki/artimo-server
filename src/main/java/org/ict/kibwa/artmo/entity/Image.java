@@ -1,5 +1,6 @@
 package org.ict.kibwa.artmo.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,6 +36,7 @@ public class Image implements Serializable {
     private Diary diary;
 
     @OneToMany(mappedBy = "image", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Video> videos;
 
     @CreationTimestamp
