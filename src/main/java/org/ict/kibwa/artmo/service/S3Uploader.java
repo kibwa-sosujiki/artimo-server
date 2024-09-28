@@ -31,17 +31,23 @@ public class S3Uploader {
 
     // 이미지 파일을 업로드하는 메서드 (파일 타입에 따라 분기 처리)
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
+        if(multipartFile == null || multipartFile.isEmpty()){
+            log.error("MultipartFile is null or empty");
+            throw new IllegalArgumentException("No file uploaded");
+        }
         String fileName = createFileName(multipartFile.getOriginalFilename(), dirName);
         String contentType = detectFileType(multipartFile);  // 파일 타입 확인
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);  // 파일 타입 설정
         metadata.setContentLength(multipartFile.getSize());
 
-        // S3에 파일 업로드
+        // S3에 파일 업로드 로그 추가
+        log.info("Uploading file to S3 with file name: " + fileName);
         InputStream inputStream = multipartFile.getInputStream();
         amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
+        log.info("File uploaded to S3 successfully with URL: " + amazonS3.getUrl(bucket, fileName).toString());
 
-        return amazonS3.getUrl(bucket, fileName).toString();  // 업로드된 파일 URL 반환
+        return amazonS3.getUrl(bucket, fileName).toString();
     }
 
     // InputStream으로 업로드하는 메서드
