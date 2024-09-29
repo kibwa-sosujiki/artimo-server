@@ -186,11 +186,9 @@ public class DiaryController {
         String gptContent = (String) message.get("content");
 
         // 결과를 새로운 형식으로 변환하여 반환
-        String finalResponse = "Generate an image based on the user's emotions: ( "
-                + gptContent
-                + " ). Use yellow for positive emotions, green for mental rest, and blue for sadness. "
-                + "The image should be beautifully depicted like a piece of artwork, with a soft and gentle feel. It must not include any people or text. Focus on depicting natural elements. "
-                + "The image should look like it was hand-drawn, not artificial. It should not be overly three-dimensional or evoke any discomfort.";
+        String finalResponse = "Generate a beautiful image that can console the user's emotions that " + gptContent + ". The image must feature a beautiful natural landscape, and no human bodies or text should be included.";
+
+        log.info("finalResponse: {}", finalResponse);
 
         return finalResponse;  // 변환된 최종 결과를 반환
     }
@@ -304,6 +302,7 @@ public class DiaryController {
 
         RestTemplate restTemplate = new RestTemplate();
         Map<String, Object> request = new HashMap<>();
+        request.put("model", "dall-e-3");
         request.put("prompt", prompt);
         request.put("n", 1);  // 하나의 이미지 생성
         request.put("size", "1024x1024");
@@ -337,6 +336,8 @@ public class DiaryController {
 
         // Step 2: 텍스트 분석 및 감정 추출
         String gptResponse = getEmotionAnalysisFromGPT(contents);
+
+        log.info("gptResponse: {}", gptResponse);
 
         // Step 3: DALL-E 3 이미지 생성 요청
         String imageUrl = generateImageFromDalle(gptResponse);
