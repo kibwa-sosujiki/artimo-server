@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -34,9 +35,8 @@ public class Video implements Serializable {
     @JoinColumn(name = "img_id")
     private Image image;
 
-    @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDate createdAt;
 
     @Builder
     public Video(String videoUrl, Image image) {

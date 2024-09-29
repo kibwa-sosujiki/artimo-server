@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -38,9 +39,8 @@ public class Image implements Serializable {
     @OneToMany(mappedBy = "image", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Video> videos;
 
-    @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDate createdAt;
 
     @Builder
     public Image(String imgUrl, Diary diary) {

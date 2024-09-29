@@ -44,6 +44,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
@@ -86,6 +87,10 @@ public class DiaryController {
             // JSON 문자열을 Diary 객체로 변환
             ObjectMapper objectMapper = new ObjectMapper();
             Diary diary = objectMapper.readValue(diaryData, Diary.class);
+
+            if(diary.getCreatedAt() == null) {
+                diary.setCreatedAt(LocalDate.now());
+            }
 
             // 이미지 파일이 있으면 S3에 업로드 후 이미지 URL을 Diary 객체에 설정
             if (imageFile != null && !imageFile.isEmpty()) {
@@ -349,6 +354,7 @@ public class DiaryController {
         Image image = new Image();
         image.setImgUrl(s3ImageUrl);
         image.setDiary(diary);
+        image.setCreatedAt(diary.getCreatedAt());
         Image savedImage = imageService.save(image);
 
         // Step 6: 이미지에서 비디오 생성 요청
@@ -368,6 +374,7 @@ public class DiaryController {
         Video video = new Video();
         video.setImage(savedImage);
         video.setVideoUrl(s3VideoUrl);
+        video.setCreatedAt(savedImage.getCreatedAt());
         videoService.save(video);
 
         // 응답 생성

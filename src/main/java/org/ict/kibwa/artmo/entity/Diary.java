@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -40,15 +41,13 @@ public class Diary implements Serializable {
     @Column(name = "dimg_url", length = 300)
     private String dimgUrl;
 
-    @NonNull
-    @CreationTimestamp
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDate createdAt;
 
     @NonNull
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private LocalDate updatedAt;
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Image> images;
