@@ -61,6 +61,7 @@ public class DiaryController {
     private final ImageService imageService;
     private final VideoService videoService;
     private final S3Uploader s3Uploader;
+    private final ObjectMapper objectMapper;
 
     @Value("${openai.api-key}")
     private String openaiApiKey;
@@ -86,7 +87,6 @@ public class DiaryController {
 
         try {
             // JSON 문자열을 Diary 객체로 변환
-            ObjectMapper objectMapper = new ObjectMapper();
             Diary diary = objectMapper.readValue(diaryData, Diary.class);
 
             if(diary.getCreatedAt() == null) {
