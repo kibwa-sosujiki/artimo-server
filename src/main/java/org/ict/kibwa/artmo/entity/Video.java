@@ -37,7 +37,6 @@ public class Video implements Serializable {
     @JoinColumn(name = "img_id")
     private Image image;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
