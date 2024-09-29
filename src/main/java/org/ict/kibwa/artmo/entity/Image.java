@@ -1,5 +1,6 @@
 package org.ict.kibwa.artmo.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -40,6 +41,7 @@ public class Image implements Serializable {
     @OneToMany(mappedBy = "image", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Video> videos;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
