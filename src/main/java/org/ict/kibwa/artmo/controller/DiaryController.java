@@ -45,6 +45,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
@@ -89,7 +90,7 @@ public class DiaryController {
             Diary diary = objectMapper.readValue(diaryData, Diary.class);
 
             if(diary.getCreatedAt() == null) {
-                diary.setCreatedAt(LocalDate.now());
+                diary.setCreatedAt(LocalDateTime.now());
             }
 
             // 이미지 파일이 있으면 S3에 업로드 후 이미지 URL을 Diary 객체에 설정
