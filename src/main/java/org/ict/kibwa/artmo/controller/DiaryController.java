@@ -426,7 +426,7 @@ public class DiaryController {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video";
 
         // 1. 이미지 다운로드 및 해상도 조정 (768x768으로 변경)
-        String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 768, 768);
+        String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
 
         // 2. RestTemplate으로 multipart/form-data 요청 구성
         RestTemplate restTemplate = new RestTemplate();
