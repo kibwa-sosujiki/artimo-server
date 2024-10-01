@@ -532,7 +532,6 @@ public class DiaryController {
             List<Map<String, Object>> videos = image.getVideos().stream().map(video -> {
                 Map<String, Object> videoInfo = new HashMap<>();
                 videoInfo.put("videoUrl", video.getVideoUrl());  // 동영상 URL
-                videoInfo.put("createdAt", video.getCreatedAt());  // 동영상 생성 날짜 추가
                 return videoInfo;
             }).collect(Collectors.toList());
 
