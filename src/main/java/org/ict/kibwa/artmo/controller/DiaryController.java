@@ -528,14 +528,12 @@ public class DiaryController {
             media.put("thumb", image.getImgUrl());  // 썸네일 이미지 URL
             media.put("createdAt", image.getCreatedAt());  // 이미지 생성 날짜 추가
 
-            // 해당 이미지와 관련된 동영상 추가
-            List<Map<String, Object>> videos = image.getVideos().stream().map(video -> {
-                Map<String, Object> videoInfo = new HashMap<>();
-                videoInfo.put("videoUrl", video.getVideoUrl());  // 동영상 URL
-                return videoInfo;
-            }).collect(Collectors.toList());
+            // 해당 이미지와 관련된 동영상 추가 (동영상 URL만 리스트로 반환)
+            List<String> videoUrls = image.getVideos().stream()
+                    .map(Video::getVideoUrl)  // 동영상 URL만 추출
+                    .collect(Collectors.toList());
 
-            media.put("sources", videos);  // 동영상 정보 리스트
+            media.put("sources", videoUrls);  // 동영상 URL 리스트
 
             mediaList.add(media);
         });
@@ -543,6 +541,7 @@ public class DiaryController {
         response.put("result", mediaList);
         return ResponseEntity.ok(response);
     }
+
 
 
     @Operation(summary = "가장 최신 이미지와 동영상 조회")
