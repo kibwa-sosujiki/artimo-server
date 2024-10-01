@@ -546,8 +546,22 @@ public class DiaryController {
         Map<String, Object> response = new HashMap<>();
         Map<String, Object> result = new HashMap<>();
 
-        // 최신 이미지 가져오기
+        // 최신 이미지와 동영상 가져오기 (같은 인덱스 기준)
         Image latestImage = imageService.getLatestImage();
+        Video latestVideo = videoService.getLatestVideo();
+
+        // 둘 중 하나라도 null일 경우, 이전 인덱스의 이미지와 동영상 가져오기
+        while (latestImage == null || latestVideo == null) {
+            latestImage = imageService.getPreviousImage(latestImage); // 현재 이미지 기준으로 이전 이미지 가져오기
+            latestVideo = videoService.getPreviousVideo(latestVideo); // 현재 동영상 기준으로 이전 동영상 가져오기
+
+            // 이전 인덱스에서도 둘 다 null이면 break로 무한 루프 방지
+            if (latestImage == null && latestVideo == null) {
+                break;
+            }
+        }
+
+        // 이미지가 존재하는 경우 처리
         if (latestImage != null) {
             result.put("id", latestImage.getImgId());
             result.put("thumb", latestImage.getImgUrl());
@@ -556,8 +570,7 @@ public class DiaryController {
             result.put("thumb", "No image available");
         }
 
-        // 최신 동영상 가져오기
-        Video latestVideo = videoService.getLatestVideo();
+        // 동영상이 존재하는 경우 처리
         if (latestVideo != null) {
             result.put("sources", latestVideo.getVideoUrl());
         } else {
@@ -567,5 +580,6 @@ public class DiaryController {
         response.put("result", result);
         return ResponseEntity.ok(response);
     }
+
 
 }

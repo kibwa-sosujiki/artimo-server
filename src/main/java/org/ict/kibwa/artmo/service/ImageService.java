@@ -27,6 +27,15 @@ public class ImageService {
         return imageRepository.findTopByOrderByCreatedAtDesc();
     }
 
+    // 이전 이미지 가져오기
+    public Image getPreviousImage(Image currentImage) {
+        if (currentImage == null) {
+            return null;
+        }
+        // 현재 이미지의 createdAt보다 작은 값을 가진 가장 최신 이미지를 가져옴
+        return imageRepository.findTopByCreatedAtLessThanOrderByCreatedAtDesc(currentImage.getCreatedAt());
+    }
+
     public Image findById(Long id) {
         return imageRepository.findById(id).orElse(null);  // 이미지 조회
     }

@@ -28,6 +28,15 @@ public class VideoService {
         return videoRepository.save(video);  // Video 엔티티 저장
     }
 
+    // 이전 동영상 가져오기
+    public Video getPreviousVideo(Video currentVideo) {
+        if (currentVideo == null) {
+            return null;
+        }
+        // 현재 동영상의 createdAt보다 작은 값을 가진 가장 최신 동영상을 가져옴
+        return videoRepository.findTopByCreatedAtLessThanOrderByCreatedAtDesc(currentVideo.getCreatedAt());
+    }
+
     public void setImgId(Long videoId, Long imgId) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
