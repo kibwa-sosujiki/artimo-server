@@ -77,6 +77,18 @@ public class DiaryController {
     @Value("${aws.s3.bucket-name}")
     private String bucket;
 
+    @Value("${smartthings.api-key}")
+    private String smartthingsApiKey;
+
+    @Value("${bulb.api-key}")
+    private String bulbApiKey;
+
+    @Value("${flowerdiff.api-key}")
+    private String flowerdiffApiKey;
+
+    @Value("${peachdiff.api-key}")
+    private String peachdiffApiKey;
+
     private static final Logger logger = LoggerFactory.getLogger(DiaryController.class);
 
     @Operation(summary = "일기 작성")
@@ -425,7 +437,7 @@ public class DiaryController {
     private String startImageToVideoGeneration(String imageUrl) throws IOException {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video";
 
-        // 1. 이미지 다운로드 및 해상도 조정 (768x768으로 변경)
+        // 1. 이미지 다운로드 및 해상도 조정 (1024x576으로 변경)
         String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
 
         // 2. RestTemplate으로 multipart/form-data 요청 구성
@@ -583,6 +595,249 @@ public class DiaryController {
 
         response.put("result", result);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/set-light-color/{diaryId}")
+    public ResponseEntity<String> setLightColorBasedOnEmotion(@PathVariable("diaryId") Long diaryId) {
+        log.info("Received request to set light color for diaryId: {}", diaryId);
+
+        // 1. diaryId로 일기 조회
+        Diary diary;
+        try {
+            diary = diaryService.findById(diaryId).orElseThrow(() -> {
+                log.error("Diary not found for diaryId: {}", diaryId);
+                return new RuntimeException("Diary not found");
+            });
+        } catch (Exception e) {
+            log.error("Error retrieving diary: {}", e.getMessage());
+            return ResponseEntity.status(500).body("Failed to retrieve diary.");
+        }
+        log.info("Diary found: {}", diary);
+
+        // 2. 일기의 emotionType 추출
+        String emotionType = diary.getEmotionType();
+        log.info("Extracted emotionType from diary: {}", emotionType);
+
+        // 3. 감정 카테고리에 따라 전등 색상 결정
+        String lightColor = determineLightColorByEmotion(emotionType);
+        log.info("Determined light color: {}", lightColor);
+
+        // 4. 전등 색상 변경 API 호출
+        boolean result = setLightColor(lightColor);
+
+        boolean diffuserResult = controlDiffuserBasedOnEmotion(emotionType);
+
+        if (result) {
+            log.info("Successfully set light color to: {}", lightColor);
+            return ResponseEntity.ok("Light color set to " + lightColor + " based on emotion: " + emotionType);
+        } else {
+            log.error("Failed to set light color.");
+            return ResponseEntity.status(500).body("Failed to set light color.");
+        }
+    }
+
+    private boolean setLightColor(String color) {
+        log.info("Setting light color to: {}", color);
+
+        // SmartThings API URL
+        String apiUrl = "https://api.smartthings.com/v1/devices/"+ bulbApiKey +"/commands";
+
+        // Hue와 Saturation 값 설정
+        Map<String, Integer> colorValues = getColorHueSaturation(color);
+        if (colorValues == null) {
+            log.error("Invalid color: {}", color);
+            return false; // 잘못된 색상 값일 경우 실패 처리
+        }
+
+        log.info("Color values - Hue: {}, Saturation: {}", colorValues.get("hue"), colorValues.get("saturation"));
+
+        // 요청 바디 구성
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("hue", colorValues.get("hue"));
+        arguments.put("saturation", colorValues.get("saturation"));
+
+        Map<String, Object> command = new HashMap<>();
+        command.put("component", "main");
+        command.put("capability", "colorControl");
+        command.put("command", "setColor");
+        command.put("arguments", Collections.singletonList(arguments));
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("commands", Collections.singletonList(command));
+
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + smartthingsApiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 요청 엔티티 생성
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        // RestTemplate으로 POST 요청
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            log.info("Sending request to SmartThings API...");
+            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+            log.info("SmartThings API response status: {}", response.getStatusCode());
+
+            // 응답 상태 코드가 200번대일 경우 성공
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            // 오류 발생 시 예외 처리
+            log.error("Error setting light color: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * emotionType에 따라 색상을 결정하는 메서드
+     */
+    private String determineLightColorByEmotion(String emotionType) {
+        log.info("Determining light color for emotionType: {}", emotionType);
+
+        if (emotionType == null) {
+            return "white"; // 기본값
+        }
+
+        // 감정 유형에 따른 색상 결정
+        switch (emotionType.toLowerCase()) {
+            case "happy":
+            case "fun":
+            case "wonderful":
+            case "laugh":
+            case "angel":
+            case "love":
+            case "joyful":
+                return "yellow";  // Positive 감정 -> 노란색
+
+            case "tears":
+            case "unhappy":
+            case "sorrow":
+            case "depressed":
+            case "hard":
+            case "upset":
+            case "angry":
+            case "hardday":
+            case "sad":
+            case "sadlaugh":
+                return "blue";  // Negative 감정 -> 파란색
+
+            case "sick":
+            case "demon":
+                return "red";  // Stress 감정 -> 빨간색
+
+            case "surprise":
+            case "unexpected":
+                return "orange";  // Anxiety 감정 -> 오렌지색
+
+            case "calm":
+            case "shocking":
+            case "embarrassed":
+                return "green";  // NeedRest 감정 -> 초록색
+
+            default:
+                return "white";  // 기본값
+        }
+    }
+
+    private Map<String, Integer> getColorHueSaturation(String color) {
+        Map<String, Integer> values = new HashMap<>();
+        switch (color.toLowerCase()) {
+            case "green":
+                values.put("hue", 30);
+                values.put("saturation", 80);
+                break;
+            case "orange":
+                values.put("hue", 10);
+                values.put("saturation", 100);
+                break;
+            case "red":
+                values.put("hue", 100);
+                values.put("saturation", 100);
+                break;
+            case "blue":
+                values.put("hue", 60);
+                values.put("saturation", 100);
+                break;
+            case "yellow":
+                values.put("hue", 17);
+                values.put("saturation", 40);
+                break;
+            case "white":
+                values.put("hue", 240);
+                values.put("saturation", 100);
+                break;
+            default:
+                values.put("hue", 240);
+                values.put("saturation", 99);
+                break;
+        }
+        return values;
+    }
+
+    private boolean controlDiffuserBasedOnEmotion(String emotionType) {
+        String apiUrlOn, apiUrlOff;
+
+        // Positive와 Anxiety 감정 -> 스위트 피치 향을 켜고 플라워샵 향을 끔
+        if (emotionType.equalsIgnoreCase("happy") ||
+                emotionType.equalsIgnoreCase("joyful") ||
+                emotionType.equalsIgnoreCase("fun") ||
+                emotionType.equalsIgnoreCase("wonderful") ||
+                emotionType.equalsIgnoreCase("laugh") ||
+                emotionType.equalsIgnoreCase("angel") ||
+                emotionType.equalsIgnoreCase("surprise") ||
+                emotionType.equalsIgnoreCase("unexpected")) {
+
+            // 스위트 피치 향 켜기, 플라워샵 향 끄기
+            apiUrlOn = "https://api.smartthings.com/v1/devices/" + peachdiffApiKey + "/commands";
+            apiUrlOff = "https://api.smartthings.com/v1/devices/" + flowerdiffApiKey + "/commands";
+
+        } else {
+            // 스위트 피치 향 끄기, 플라워샵 향 켜기
+            apiUrlOn = "https://api.smartthings.com/v1/devices/" + flowerdiffApiKey + "/commands";
+            apiUrlOff = apiUrlOn = "https://api.smartthings.com/v1/devices/" + peachdiffApiKey + "/commands";
+        }
+
+        // 디퓨저 켜기
+        boolean onResult = sendDiffuserCommand(apiUrlOn, "on");
+
+        // 반대 디퓨저 끄기
+        boolean offResult = sendDiffuserCommand(apiUrlOff, "off");
+
+        return onResult && offResult;
+    }
+
+    private boolean sendDiffuserCommand(String apiUrl, String commandType) {
+        // 요청 바디 구성
+        Map<String, Object> command = new HashMap<>();
+        command.put("component", "main");
+        command.put("capability", "switch");
+        command.put("command", commandType);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("commands", Collections.singletonList(command));
+
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + smartthingsApiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 요청 엔티티 생성
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        // RestTemplate으로 POST 요청
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            log.info("Sending {} command to SmartThings API: {}", commandType, apiUrl);
+            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+            log.info("SmartThings API response status: {}", response.getStatusCode());
+
+            // 응답 상태 코드가 200번대일 경우 성공
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            log.error("Error sending {} command to diffuser: {}", commandType, e.getMessage());
+            return false;
+        }
     }
 
 }
