@@ -799,7 +799,7 @@ public class DiaryController {
         } else {
             // 스위트 피치 향 끄기, 플라워샵 향 켜기
             apiUrlOn = "https://api.smartthings.com/v1/devices/" + flowerdiffApiKey + "/commands";
-            apiUrlOff = apiUrlOn = "https://api.smartthings.com/v1/devices/" + peachdiffApiKey + "/commands";
+            apiUrlOff = "https://api.smartthings.com/v1/devices/" + peachdiffApiKey + "/commands";
         }
 
         // 디퓨저 켜기
