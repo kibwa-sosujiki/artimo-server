@@ -9,4 +9,6 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     Video findTopByOrderByCreatedAtDesc();
 
     Video findTopByCreatedAtLessThanOrderByCreatedAtDesc(LocalDateTime createdAt);
+
+    Video findByImage_ImgId(Long imgId);
 }
