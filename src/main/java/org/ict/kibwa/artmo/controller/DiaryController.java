@@ -231,7 +231,7 @@ public class DiaryController {
         String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
 
         // 생성된 이미지를 S3에 업로드
-        String s3ImageUrl = uploadImageFromUrlToS3(resizedImagePath, "emotion-images");
+        String s3ImageUrl = uploadImageFromLocalToS3(resizedImagePath, "emotion-images");
 
         // 일기 조회
         Diary diary = diaryService.findById(diaryId).orElseThrow(()-> new RuntimeException("Diary not found"));
@@ -252,42 +252,45 @@ public class DiaryController {
         return ResponseEntity.ok(response);
     }
 
-    // 이미지 URL을 받아 바로 S3로 PNG 형식으로 변환하여 업로드하는 함수
-    private String uploadImageFromUrlToS3(String imageUrl, String s3Path) throws IOException {
-        log.info("Starting upload for image URL: {}", imageUrl);  // 이미지 URL 로그 추가
+    // 이미지 경로를 URL로 사용하지 않고, 로컬 파일로 처리
+    private String uploadImageFromLocalToS3(String localFilePath, String s3Path) throws IOException {
+        log.info("Starting upload for local file: {}", localFilePath);  // 파일 경로 로그 추가
 
-        try (InputStream inputStream = new URL(imageUrl).openStream()) {
-            // 이미지 다운로드 및 BufferedImage로 변환
-            BufferedImage originalImage = ImageIO.read(inputStream);
-            if (originalImage == null) {
-                throw new IOException("Failed to download image from URL: " + imageUrl);
-            }
-
-            // BufferedImage를 PNG로 변환
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            ImageIO.write(originalImage, "png", os);
-            byte[] pngData = os.toByteArray();
-
-            // 변환된 PNG 이미지를 S3에 업로드
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(pngData.length);
-            metadata.setContentType("image/png");
-
-            // 파일 이름 생성 (경로 포함)
-            String fileName = createFileNameFromUrl(imageUrl, s3Path, "png");
-            log.info("Uploading to S3 with file name: {}", fileName);
-
-            // ByteArrayInputStream으로 S3에 업로드
-            try (InputStream byteInputStream = new ByteArrayInputStream(pngData)) {
-                amazonS3.putObject(new PutObjectRequest(bucket, fileName, byteInputStream, metadata));
-            }
-
-            // 업로드된 파일의 S3 URL 반환
-            String s3ImageUrl = amazonS3.getUrl(bucket, fileName).toString();
-            log.info("File successfully uploaded to S3 at URL: {}", s3ImageUrl);
-
-            return s3ImageUrl;
+        // 로컬 파일을 읽어 BufferedImage로 변환
+        File file = new File(localFilePath);
+        if (!file.exists()) {
+            throw new IOException("Local file not found: " + localFilePath);
         }
+
+        // BufferedImage를 PNG로 변환
+        BufferedImage originalImage = ImageIO.read(file);
+        if (originalImage == null) {
+            throw new IOException("Failed to read local image file: " + localFilePath);
+        }
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ImageIO.write(originalImage, "png", os);
+        byte[] pngData = os.toByteArray();
+
+        // PNG 데이터를 S3에 업로드
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(pngData.length);
+        metadata.setContentType("image/png");
+
+        // 파일 이름 생성 (경로 포함)
+        String fileName = s3Path + "/" + file.getName();
+        log.info("Uploading to S3 with file name: {}", fileName);
+
+        // ByteArrayInputStream으로 S3에 업로드
+        try (InputStream byteInputStream = new ByteArrayInputStream(pngData)) {
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, byteInputStream, metadata));
+        }
+
+        // 업로드된 파일의 S3 URL 반환
+        String s3ImageUrl = amazonS3.getUrl(bucket, fileName).toString();
+        log.info("File successfully uploaded to S3 at URL: {}", s3ImageUrl);
+
+        return s3ImageUrl;
     }
 
     // 파일 이름을 생성할 때 확장자를 포함하여 생성하는 메서드
@@ -366,7 +369,7 @@ public class DiaryController {
         String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
 
         // Step 5: 크기 조정된 이미지를 S3에 업로드
-        String s3ImageUrl = uploadImageFromUrlToS3(resizedImagePath, "emotion-images");
+        String s3ImageUrl = uploadImageFromLocalToS3(resizedImagePath, "emotion-images");
 
         // Step 6: 이미지 DB 저장
         Image image = new Image();
