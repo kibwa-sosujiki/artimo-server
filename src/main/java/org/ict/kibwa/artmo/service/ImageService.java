@@ -20,7 +20,7 @@ public class ImageService {
     }
 
     public List<Image> getAllImages(){
-        return imageRepository.findAll();
+        return imageRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public Image getLatestImage(){
