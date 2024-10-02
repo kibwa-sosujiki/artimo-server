@@ -29,7 +29,7 @@ public class VideoService {
     }
 
     public Video getVideoByImageId(Long imageId) {
-        return videoRepository.findByImageId(imageId);
+        return videoRepository.findByImage_ImgId(imageId);
     }
 
     public void setImgId(Long videoId, Long imgId) {
