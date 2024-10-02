@@ -228,8 +228,10 @@ public class DiaryController {
         // DALL-E 3 이미지 생성 요청
         String imageUrl = generateImageFromDalle(gptResponse);
 
+        String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
+
         // 생성된 이미지를 S3에 업로드
-        String s3ImageUrl = uploadImageFromUrlToS3(imageUrl, "emotion-images");
+        String s3ImageUrl = uploadImageFromUrlToS3(resizedImagePath, "emotion-images");
 
         // 일기 조회
         Diary diary = diaryService.findById(diaryId).orElseThrow(()-> new RuntimeException("Diary not found"));
