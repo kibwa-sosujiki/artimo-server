@@ -562,18 +562,21 @@ public class DiaryController {
         Map<String, Object> response = new HashMap<>();
         Map<String, Object> result = new HashMap<>();
 
-        // 최신 이미지와 동영상 가져오기 (같은 인덱스 기준)
+        // 최신 이미지 가져오기
         Image latestImage = imageService.getLatestImage();
-        Video latestVideo = videoService.getLatestVideo();
 
-        // 둘 중 하나라도 null일 경우, 이전 인덱스의 이미지와 동영상 가져오기
-        while (latestImage == null || latestVideo == null) {
-            latestImage = imageService.getPreviousImage(latestImage); // 현재 이미지 기준으로 이전 이미지 가져오기
-            latestVideo = videoService.getPreviousVideo(latestVideo); // 현재 동영상 기준으로 이전 동영상 가져오기
+        // 이미지가 존재할 경우 해당 이미지와 관련된 최신 동영상 가져오기
+        Video latestVideo = null;
+        if (latestImage != null) {
+            latestVideo = videoService.getVideoByImageId(latestImage.getImgId());
+        }
 
-            // 이전 인덱스에서도 둘 다 null이면 break로 무한 루프 방지
-            if (latestImage == null && latestVideo == null) {
-                break;
+        // 만약 동영상이 없으면, 이전 동영상 중 최신의 동영상을 가져오기
+        while (latestVideo == null && latestImage != null) {
+            latestImage = imageService.getPreviousImage(latestImage); // 이전 이미지 가져오기
+
+            if (latestImage != null) {
+                latestVideo = videoService.getVideoByImageId(latestImage.getImgId()); // 해당 이미지에 해당하는 동영상 가져오기
             }
         }
 
@@ -596,6 +599,7 @@ public class DiaryController {
         response.put("result", result);
         return ResponseEntity.ok(response);
     }
+
 
     @PostMapping("/set-light-color/{diaryId}")
     public ResponseEntity<String> setLightColorBasedOnEmotion(@PathVariable("diaryId") Long diaryId) {
