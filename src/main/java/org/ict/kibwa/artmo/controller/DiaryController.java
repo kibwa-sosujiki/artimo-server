@@ -360,30 +360,33 @@ public class DiaryController {
         // Step 3: DALL-E 3 이미지 생성 요청
         String imageUrl = generateImageFromDalle(gptResponse);
 
-        // Step 4: 생성된 이미지를 S3에 업로드
-        String s3ImageUrl = uploadImageFromUrlToS3(imageUrl, "emotion-images");
+        // Step 4: 생성된 이미지를 1024x576 크기로 조정
+        String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
 
-        // Step 5: 이미지 DB 저장
+        // Step 5: 크기 조정된 이미지를 S3에 업로드
+        String s3ImageUrl = uploadImageFromUrlToS3(resizedImagePath, "emotion-images");
+
+        // Step 6: 이미지 DB 저장
         Image image = new Image();
         image.setImgUrl(s3ImageUrl);
         image.setDiary(diary);
         image.setCreatedAt(diary.getCreatedAt());
         Image savedImage = imageService.save(image);
 
-        // Step 6: 이미지에서 비디오 생성 요청
+        // Step 7: 이미지에서 비디오 생성 요청
         String videoId = startImageToVideoGeneration(s3ImageUrl);
 
-        // Step 7: 비디오 생성 완료 대기
+        // Step 8: 비디오 생성 완료 대기
         byte[] videoData = pollForVideoResult(videoId);
 
-        // Step 8: 비디오 S3에 업로드
+        // Step 9: 비디오 S3에 업로드
         InputStream videoInputStream = new ByteArrayInputStream(videoData);
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(videoData.length);
         metadata.setContentType("video/mp4");
         String s3VideoUrl = s3Uploader.upload(videoInputStream, "emotion-videos/" + savedImage.getImgId() + ".mp4", metadata);
 
-        // Step 9: 비디오 DB 저장
+        // Step 10: 비디오 DB 저장
         Video video = new Video();
         video.setImage(savedImage);
         video.setVideoUrl(s3VideoUrl);
@@ -398,8 +401,6 @@ public class DiaryController {
 
         return ResponseEntity.ok(response);
     }
-
-
 
     private byte[] pollForVideoResult(String videoId) {
         String apiUrl = "https://api.stability.ai/v2beta/image-to-video/result/" + videoId;
