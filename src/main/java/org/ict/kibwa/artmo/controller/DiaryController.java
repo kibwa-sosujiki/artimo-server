@@ -203,11 +203,9 @@ public class DiaryController {
         String gptContent = (String) message.get("content");
 
         // 결과를 새로운 형식으로 변환하여 반환
-        String finalResponse = "user's emotions: " + gptContent + ". Must follow this rule" +
-                "Abstract art, Geometric shapes, Patterns, Natural elements, Organic forms, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Balanced, Elegant, No human figures, Shapes and patterns only, Inspired by nature, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Universally appealing, Balanced, Elegant" +
-                "Yellow tones for positive emotions (e.g., happiness, laughter, love), " +
-                "Blue tones for negative emotions (e.g., tears, sadness, difficulty, anger), Red tones for stressful situations (e.g., sickness, demon, stress), " +
-                "Orange tones for anxious emotions (e.g., surprise, unexpected, anxiety), and Green tones for emotions needing rest (e.g., calm, shock, embarrassment). ";
+        String finalResponse = "User's emotions: " + gptContent + ". Use yellow tones for positive emotions (e.g., happiness, love), blue tones for negative emotions (e.g., sadness, anger), red tones for stress, orange tones for anxiety, and green tones for rest and calm." +
+                "Geometric shapes, Patterns, Natural elements, Organic forms, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Balanced, Elegant, Shapes and patterns only, Inspired by nature, Universally appealing." +
+                "The image should evoke positive emotions through beautiful, harmonious, and calming colors.";
 
         log.info("finalResponse: {}", finalResponse);
 
