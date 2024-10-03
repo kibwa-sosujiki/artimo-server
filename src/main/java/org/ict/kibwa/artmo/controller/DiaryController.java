@@ -264,7 +264,7 @@ public class DiaryController {
                 Map.of("role", "system", "content",
                         "You are a helpful assistant that provides emotional support based on the user's diary."),
                 Map.of("role", "user", "content",
-                        "넌 테라피스트야. 다음 일기를 분석하고, 사용자의 감정과 일기에 공감하고 격려하는 두 개의 부드럽고 짧은 한국어 문장을 제공해. 마지막에 '아트모의 테라피 아트로 오늘도 좋은 하루 보내세요!'라는 문장을 포함해. 내용: " + contents)
+                        "넌 테라피스트야. 다음 일기를 분석하고, 사용자의 감정과 일기에 공감하고 격려하는 두 개의 짧은 한국어 문장을 제공해. 조건: 첫 번째 문장은 감정과 일기에 공감하는 단순한 문장, 두 번째 문장은 '~감정을 위한 테라피 아트입니다.'로 끝나야 하며, 앞부분은 사용자의 감정에 따라 맞추어져야 해. 세 번째 문장은 '아트모의 테라피 아트로 오늘도 좋은 하루 보내세요!'라고 끝내. 내용: " + contents)
         ));
         request.put("max_tokens", 200);
 
