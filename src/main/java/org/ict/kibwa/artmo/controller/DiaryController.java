@@ -203,9 +203,8 @@ public class DiaryController {
         String gptContent = (String) message.get("content");
 
         // 결과를 새로운 형식으로 변환하여 반환
-        String finalResponse = "based User's emotions: " + gptContent + ". Use yellow tones for happy emotions (e.g., happiness, love, angel, wonderful), blue tones for sad emotions (e.g., sadness, depressed, sorrow), red tones for angry emotions (e.g., demon, angry, mad, upset), orange tones for Anxiety emotions (e.g., surprise, unexpected, Anxiety, nervous, tension, tears), and green tones for NeedRest (e.g., calm, shocking, embarrassed, hardday, sick)." +
-                "Geometric shapes, Patterns, Natural elements, Organic forms, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Balanced, Elegant, Shapes and patterns only, Inspired by nature, Universally appealing." +
-                "The image should evoke positive emotions through beautiful, harmonious.";
+        String finalResponse = "Based on User's emotions: " + gptContent + ". Use yellow tones for positive emotions such as happiness, love, and joy. Use blue tones for emotions related to sadness, sorrow, and melancholy. For emotions related to anger and frustration, use red tones. Orange tones should represent anxiety, nervousness, and tension. Green tones are ideal for emotions associated with rest, calmness, and recovery." +
+                "The image should incorporate natural elements, soft organic forms, and subtle patterns that evoke beauty, harmony, and balance. The overall style should feel elegant, timeless, and uplifting, with a fluid and graceful composition. The goal is to create an art piece that feels inviting, calming, and universally appealing, suitable for psychological therapy and aesthetic display in a home setting. The artwork should resonate emotionally and inspire feelings of peace and well-being.";
 
         log.info("finalResponse: {}", finalResponse);
 
