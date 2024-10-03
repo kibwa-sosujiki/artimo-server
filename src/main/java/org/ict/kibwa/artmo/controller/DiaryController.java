@@ -181,8 +181,7 @@ public class DiaryController {
                 Map.of("role", "system", "content",
                         "You are a helpful assistant that analyzes emotions from text."),
                 Map.of("role", "user", "content",
-                        "Based on the diary contents provided, pick the strongest emotion and explain it in one sentence, including the reason for that emotion. "
-                                + "Ensure the emotion is described in a specific and concrete way, and keep the explanation concise: "
+                        "Based on the diary contents provided, pick the strongest emotion and map it to one of the predefined emotions: happy, fun, wonderful, laugh, angel, love, joyful, tears, unhappy, sorrow, depressed, hard, upset, angry, hardday, sad, sadlaugh, sick, demon, surprise, unexpected, calm, shocking, or embarrassed. : "
                                 + contents)
         ));
         request.put("max_tokens", 100);
@@ -204,7 +203,11 @@ public class DiaryController {
         String gptContent = (String) message.get("content");
 
         // 결과를 새로운 형식으로 변환하여 반환
-        String finalResponse = "Generate a beautiful image that can console the user's emotions that " + gptContent + ". The image must feature a beautiful natural landscape, and no human bodies or text should be included.";
+        String finalResponse = "user's emotions: " + gptContent + ". Must follow this rule" +
+                "Abstract art, Geometric shapes, Patterns, Natural elements, Organic forms, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Balanced, Elegant, No human figures, Shapes and patterns only, Inspired by nature, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Universally appealing, Balanced, Elegant" +
+                "Yellow tones for positive emotions (e.g., happiness, laughter, love), " +
+                "Blue tones for negative emotions (e.g., tears, sadness, difficulty, anger), Red tones for stressful situations (e.g., sickness, demon, stress), " +
+                "Orange tones for anxious emotions (e.g., surprise, unexpected, anxiety), and Green tones for emotions needing rest (e.g., calm, shock, embarrassment). ";
 
         log.info("finalResponse: {}", finalResponse);
 
