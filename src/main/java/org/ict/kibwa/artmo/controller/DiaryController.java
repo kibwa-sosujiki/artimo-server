@@ -181,7 +181,7 @@ public class DiaryController {
                 Map.of("role", "system", "content",
                         "You are a helpful assistant that analyzes emotions from text."),
                 Map.of("role", "user", "content",
-                        "Based on the diary contents provided, pick the strongest emotion and map it to one of the predefined emotions: happy, fun, wonderful, laugh, angel, love, joyful, tears, unhappy, sorrow, depressed, hard, upset, angry, hardday, sad, sadlaugh, sick, demon, surprise, unexpected, calm, shocking, or embarrassed. : "
+                        "Based on the diary contents provided, select two of the predefined emotions: happy, fun, wonderful, laugh, angel, love, joyful, tears, unhappy, sorrow, depressed, hard, upset, angry, hardday, sad, sadlaugh, sick, demon, surprise, unexpected, calm, shocking, or embarrassed that best represents the user's feelings. Contents: "
                                 + contents)
         ));
         request.put("max_tokens", 100);
@@ -203,9 +203,9 @@ public class DiaryController {
         String gptContent = (String) message.get("content");
 
         // 결과를 새로운 형식으로 변환하여 반환
-        String finalResponse = "User's emotions: " + gptContent + ". Use yellow tones for happy emotions (e.g., happiness, love), blue tones for sad emotions (e.g., sadness), red tones for angry and stress, orange tones for anxiety, and green tones for rest and calm." +
+        String finalResponse = "based User's emotions: " + gptContent + ". Use yellow tones for happy emotions (e.g., happiness, love, angel, wonderful), blue tones for sad emotions (e.g., sadness, depressed, sorrow), red tones for angry emotions (e.g., demon, angry, mad, upset), orange tones for Anxiety emotions (e.g., surprise, unexpected, Anxiety, nervous, tension, tears), and green tones for NeedRest (e.g., calm, shocking, embarrassed, hardday, sick)." +
                 "Geometric shapes, Patterns, Natural elements, Organic forms, Nonfigurative, Dynamic, Spatial, Artistic, Beautiful, Touching, Masterpiece, Authentic, Timeless, Artisanal, Idealistic, Blurred, Intangible, Fluid, Soft, Organic, Bright, Vibrant, Harmonious, Warm, Positive, Uplifting, Smooth, Graceful, Delicate, Inviting, Calming, Balanced, Elegant, Shapes and patterns only, Inspired by nature, Universally appealing." +
-                "The image should evoke positive emotions through beautiful, harmonious, and calming colors.";
+                "The image should evoke positive emotions through beautiful, harmonious.";
 
         log.info("finalResponse: {}", finalResponse);
 
@@ -721,29 +721,29 @@ public class DiaryController {
             case "joyful":
                 return "yellow";  // Positive 감정 -> 노란색
 
-            case "tears":
             case "unhappy":
             case "sorrow":
             case "depressed":
             case "hard":
-            case "upset":
-            case "angry":
-            case "hardday":
             case "sad":
             case "sadlaugh":
                 return "blue";  // Negative 감정 -> 파란색
 
-            case "sick":
             case "demon":
+            case "angry":
+            case "upset":
                 return "red";  // Stress 감정 -> 빨간색
 
             case "surprise":
             case "unexpected":
+            case "tears":
                 return "orange";  // Anxiety 감정 -> 오렌지색
 
             case "calm":
             case "shocking":
             case "embarrassed":
+            case "hardday":
+            case "sick":
                 return "green";  // NeedRest 감정 -> 초록색
 
             default:
