@@ -35,16 +35,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.view.RedirectView;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
@@ -151,105 +147,37 @@ public class DiaryController {
                 .build();
     }
 
-
-    /**
-     * 텍스트 분석 및 감정 추출 API
-     */
-    @PostMapping("/emotion")
-    public ResponseEntity<String> analyzeEmotion(@RequestBody Map<String, String> requestBody) {
-        String contents = requestBody.get("contents");
-
-        // GPT API를 사용하여 텍스트에서 감정 분석을 수행
-        String gptResponse = getEmotionAnalysisFromGPT(contents);
-
-        // GPT 응답을 그대로 반환
-        return ResponseEntity.ok(gptResponse);
-    }
-
     /**
      * GPT API를 호출하여 감정 분석 수행 후 이미지 생성 프롬프트로 바꿔서 출력
      */
-    private String getEmotionAnalysisFromGPT(String contents) {
-        String gptApiUrl = "https://api.openai.com/v1/chat/completions";  // GPT Chat 모델 엔드포인트
+    private String getEmotionAnalysisFromGPT(String emotiontype) {
 
-        RestTemplate restTemplate = new RestTemplate();
+        emotiontype = emotiontype.toLowerCase();
 
-        // GPT-4 대화 모델 형식에 맞게 요청 본문 구성
-        Map<String, Object> request = new HashMap<>();
-        request.put("model", "gpt-4");  // GPT-4 모델 사용
-        request.put("messages", List.of(
-                Map.of("role", "system", "content",
-                        "You are a helpful assistant that analyzes emotions from text."),
-                Map.of("role", "user", "content",
-                        "Based on the diary contents provided, select two of the predefined emotions: happy, fun, wonderful, laugh, angel, love, joyful, tears, unhappy, sorrow, depressed, hard, upset, angry, hardday, sad, sadlaugh, sick, demon, surprise, unexpected, calm, shocking, or embarrassed that best represents the user's feelings. Contents: "
-                                + contents)
-        ));
-        request.put("max_tokens", 100);
+        String colorDescription;
 
-        // 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + openaiApiKey);
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        // 감정에 따라 색깔과 이미지 설명 설정
+        if (emotiontype.equals("happy") || emotiontype.equals("fun") || emotiontype.equals("wonderful") || emotiontype.equals("laugh") || emotiontype.equals("angel") || emotiontype.equals("love") || emotiontype.equals("joyful") ) {
+            colorDescription = "Use warm yellow tones to represent positive emotions like happiness and love.";
+        } else if (emotiontype.equals("unhappy") || emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("hard") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh")) {
+            colorDescription = "Use cool blue tones to soothe and comfort emotions related to sadness and melancholy.";
+        } else if (emotiontype.equals("demon") || emotiontype.equals("angry") || emotiontype.equals("upset")) {
+            colorDescription = "Use deep red tones to help release and alleviate emotions like anger and frustration.";
+        } else if (emotiontype.equals("calm") || emotiontype.equals("shocking") || emotiontype.equals("embarrassed") || emotiontype.equals("hardday") || emotiontype.equals("sick")) {
+            colorDescription = "Use calming green tones to provide a sense of peace and tranquility.";
+        } else if (emotiontype.equals("surprise") || emotiontype.equals("unexpected") || emotiontype.equals("tears")) {
+            colorDescription = "Use warm orange tones to comfort and ease emotions related to surprise or shock.";
+        } else {
+            // 감정 타입에 어울리는 문장으로 표현
+            colorDescription = "Choose colors that best resonate with the emotions expressed in the content: " + emotiontype + ". These colors should align with the mood and feelings conveyed by the user, creating a harmonious and fitting representation of their emotional state. And,";
+        }
 
-        // 요청 엔티티 생성
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
-
-        // GPT API 호출
-        ResponseEntity<Map> response = restTemplate.postForEntity(gptApiUrl, entity, Map.class);
-
-        // GPT로부터 받은 응답에서 choices 내의 content 부분 추출
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-        String gptContent = (String) message.get("content");
-
-        // 결과를 새로운 형식으로 변환하여 반환
-        String finalResponse = "Based on User's emotions: " + gptContent + ". Use yellow tones for positive emotions such as happiness, love, and joy. Use blue tones for emotions related to sadness, sorrow, and melancholy. For emotions related to anger and frustration, use red tones. Orange tones should represent anxiety, nervousness, and tension. Green tones are ideal for emotions associated with rest, calmness, and recovery." +
-                "The image should incorporate natural elements, soft organic forms, and subtle patterns that evoke beauty, harmony, and balance. The overall style should feel elegant, timeless, and uplifting, with a fluid and graceful composition. The goal is to create an art piece that feels inviting, calming, and universally appealing, suitable for psychological therapy and aesthetic display in a home setting. The artwork should resonate emotionally and inspire feelings of peace and well-being.";
+        String finalResponse = colorDescription +
+                " Note: for Therapy. Simple. Abstract. Aesthetic. Beautiful. Dynamic elements. Soothing. Natural. Soft. Psychological healing. Evoke beauty, harmony, balance, Gentle flow. Calming. Timeless. bright, hopeful";
 
         log.info("finalResponse: {}", finalResponse);
 
         return finalResponse;  // 변환된 최종 결과를 반환
-    }
-
-
-    /**
-     * 텍스트 분석 및 감정 추출 후 이미지 생성 API
-     */
-    @PostMapping("/emotion-image/{diaryId}")
-    public ResponseEntity<Map<String, String>> analyzeEmotionAndGenerateImage(
-            @PathVariable("diaryId") Long diaryId,
-            @RequestBody Map<String, String> requestBody) throws IOException {
-
-        String contents = requestBody.get("contents");
-
-        // GPT API를 사용하여 텍스트에서 감정 분석을 수행 후 이미지 프롬프트로 바꿈
-        String gptResponse = getEmotionAnalysisFromGPT(contents);
-
-        // DALL-E 3 이미지 생성 요청
-        String imageUrl = generateImageFromDalle(gptResponse);
-
-        String resizedImagePath = downloadAndResizeImage(imageUrl, "resizedImage.png", 1024, 576);
-
-        // 생성된 이미지를 S3에 업로드
-        String s3ImageUrl = uploadImageFromLocalToS3(resizedImagePath, "emotion-images");
-
-        // 일기 조회
-        Diary diary = diaryService.findById(diaryId).orElseThrow(()-> new RuntimeException("Diary not found"));
-
-        // Image 엔티티 생성 후 S3 URL 저장
-        Image image = new Image();
-        image.setImgUrl(s3ImageUrl);
-        image.setDiary(diary);
-
-        Image savedImage = imageService.save(image);
-
-        // 응답 생성
-        Map<String, String> response = new HashMap<>();
-        response.put("gptResponse", gptResponse); // GPT 응답 추가
-        response.put("imageUrl", s3ImageUrl);  // 생성된 이미지 URL 반환
-        response.put("imageId", String.valueOf(savedImage.getImgId()));  // 저장된 이미지 ID 반환
-
-        return ResponseEntity.ok(response);
     }
 
     // 이미지 경로를 URL로 사용하지 않고, 로컬 파일로 처리
@@ -293,30 +221,6 @@ public class DiaryController {
         return s3ImageUrl;
     }
 
-    // 파일 이름을 생성할 때 확장자를 포함하여 생성하는 메서드
-    private String createFileNameFromUrl(String imageUrl, String s3Path, String extension) {
-        String uuid = UUID.randomUUID().toString();
-        return s3Path + "/" + uuid + "." + extension;
-    }
-
-    // 파일의 Content-Type을 감지하는 메서드
-    private String detectContentType(String imageUrl) {
-        if (imageUrl.endsWith(".png")) {
-            return "image/png";
-        } else if (imageUrl.endsWith(".jpg") || imageUrl.endsWith(".jpeg")) {
-            return "image/jpeg";
-        } else {
-            return "application/octet-stream";  // 알 수 없는 파일 형식의 경우 기본 값
-        }
-    }
-
-    // 이미지 URL에서 파일 이름 생성하는 메서드
-    private String createFileNameFromUrl(String imageUrl, String s3Path) {
-        String uuid = UUID.randomUUID().toString();
-        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-        return s3Path + "/" + uuid + "_" + fileName.replaceAll("\\s", "_");
-    }
-
     /**
      * DALL-E 3 API를 호출하여 이미지 생성
      */
@@ -346,6 +250,46 @@ public class DiaryController {
         return data.get(0).get("url");  // 첫 번째 이미지 URL 반환
     }
 
+    /* TTS 위한 info 텍스트 생성 */
+    private String getTherapyMessageFromGPT(String contents) {
+        // GPT-4 API 요청 로직을 사용하여 사용자 일기 내용을 분석
+        String gptApiUrl = "https://api.openai.com/v1/chat/completions";  // GPT Chat 모델 엔드포인트
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        // GPT-4 대화 모델 형식에 맞게 요청 본문 구성
+        Map<String, Object> request = new HashMap<>();
+        request.put("model", "gpt-4");  // GPT-4 모델 사용
+        request.put("messages", List.of(
+                Map.of("role", "system", "content",
+                        "You are a helpful assistant that provides emotional support based on the user's diary."),
+                Map.of("role", "user", "content",
+                        "넌 테라피스트야. 다음 일기를 분석하고, 사용자의 감정과 일기에 공감하고 격려하는 두 개의 부드럽고 짧은 한국어 문장을 제공해. 마지막에 '아트모의 테라피 아트로 오늘도 좋은 하루 보내세요!'라는 문장을 포함해. 내용: " + contents)
+        ));
+        request.put("max_tokens", 200);
+
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + openaiApiKey);
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+        // 요청 엔티티 생성
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+        // GPT API 호출
+        ResponseEntity<Map> response = restTemplate.postForEntity(gptApiUrl, entity, Map.class);
+
+        // GPT로부터 받은 응답에서 choices 내의 content 부분 추출
+        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+        String gptContent = (String) message.get("content");
+
+        // GPT 응답을 반환
+        log.info("gptContent: {}", gptContent);
+        return gptContent;  // GPT 응답 반환
+    }
+
+
     /**
      * 텍스트 분석 후 이미지 생성, 그리고 이미지에서 비디오 생성 API
      */
@@ -355,10 +299,12 @@ public class DiaryController {
 
         // Step 1: 일기 조회 및 컨텐츠 추출
         Diary diary = diaryService.findById(diaryId).orElseThrow(() -> new RuntimeException("Diary not found"));
+
         String contents = diary.getContents();
+        String emotiontype = diary.getEmotionType();
 
         // Step 2: 텍스트 분석 및 감정 추출
-        String gptResponse = getEmotionAnalysisFromGPT(contents);
+        String gptResponse = getEmotionAnalysisFromGPT(emotiontype);
 
         log.info("gptResponse: {}", gptResponse);
 
@@ -398,11 +344,15 @@ public class DiaryController {
         video.setCreatedAt(savedImage.getCreatedAt());
         videoService.save(video);
 
+        // Step 11: info comment 생성
+        String infoComment = getTherapyMessageFromGPT(contents);
+
         // 응답 생성
         Map<String, String> response = new HashMap<>();
         response.put("gptResponse", gptResponse); // GPT 응답 추가
         response.put("imageUrl", s3ImageUrl);     // 생성된 이미지 URL 반환
         response.put("videoUrl", s3VideoUrl);     // 생성된 비디오 URL 반환
+        response.put("infoComment", infoComment);     // 생성된 info 코멘트 반환
 
         return ResponseEntity.ok(response);
     }
@@ -795,7 +745,9 @@ public class DiaryController {
                 emotionType.equalsIgnoreCase("wonderful") ||
                 emotionType.equalsIgnoreCase("laugh") ||
                 emotionType.equalsIgnoreCase("angel") ||
+                emotionType.equalsIgnoreCase("love") ||
                 emotionType.equalsIgnoreCase("surprise") ||
+                emotionType.equalsIgnoreCase("tears") ||
                 emotionType.equalsIgnoreCase("unexpected")) {
 
             // 스위트 피치 향 켜기, 플라워샵 향 끄기
