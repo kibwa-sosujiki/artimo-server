@@ -547,9 +547,14 @@ public class DiaryController {
             media.put("thumb", image.getImgUrl());  // 썸네일 이미지 URL
             media.put("createdAt", image.getCreatedAt());  // 이미지 생성 날짜 추가
 
-            // 해당 이미지와 관련된 동영상 추가 (동영상 URL만 리스트로 반환)
-            List<String> videoUrls = image.getVideos().stream()
-                    .map(Video::getVideoUrl)  // 동영상 URL만 추출
+            // 해당 이미지와 관련된 동영상 추가 (동영상 URL과 infoComment 리스트로 반환)
+            List<Map<String, String>> videoUrls = image.getVideos().stream()
+                    .map(video -> {
+                        Map<String, String> videoInfo = new HashMap<>();
+                        videoInfo.put("videoUrl", video.getVideoUrl()); // 동영상 URL
+                        videoInfo.put("infoComment", video.getInfoComment()); // 동영상 infoComment
+                        return videoInfo;
+                    })
                     .collect(Collectors.toList());
 
             media.put("sources", videoUrls);  // 동영상 URL 리스트
@@ -598,7 +603,10 @@ public class DiaryController {
 
         // 동영상이 존재하는 경우 처리
         if (latestVideo != null) {
-            result.put("sources", latestVideo.getVideoUrl());
+            Map<String, String> videoDetails = new HashMap<>();
+            videoDetails.put("videoUrl", latestVideo.getVideoUrl());
+            videoDetails.put("infoComment", latestVideo.getInfoComment());
+            result.put("sources", videoDetails);
         } else {
             result.put("sources", "No video available");
         }
