@@ -33,6 +33,9 @@ public class Video implements Serializable {
     @Column(name = "video_url", length = 1000)
     private String videoUrl;
 
+    @Column(name = "info_comment", length = 1000)
+    private String infoComment;
+
     @ManyToOne
     @JoinColumn(name = "img_id")
     private Image image;
