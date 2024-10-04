@@ -157,23 +157,23 @@ public class DiaryController {
         String colorDescription;
 
         // 감정에 따라 색깔과 이미지 설명 설정
-        if (emotiontype.equals("happy") || emotiontype.equals("fun") || emotiontype.equals("wonderful") || emotiontype.equals("laugh") || emotiontype.equals("angel") || emotiontype.equals("love") || emotiontype.equals("joyful") ) {
-            colorDescription = "Use warm yellow tones to represent positive emotions like happiness and love.";
-        } else if (emotiontype.equals("unhappy") || emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("hard") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh")) {
-            colorDescription = "Use cool blue tones to soothe and comfort emotions related to sadness and melancholy.";
-        } else if (emotiontype.equals("demon") || emotiontype.equals("angry") || emotiontype.equals("upset")) {
-            colorDescription = "Use deep red tones to help release and alleviate emotions like anger and frustration.";
-        } else if (emotiontype.equals("calm") || emotiontype.equals("shocking") || emotiontype.equals("embarrassed") || emotiontype.equals("hardday") || emotiontype.equals("sick")) {
-            colorDescription = "Use calming green tones to provide a sense of peace and tranquility.";
-        } else if (emotiontype.equals("surprise") || emotiontype.equals("unexpected") || emotiontype.equals("tears")) {
-            colorDescription = "Use warm orange tones to comfort and ease emotions related to surprise or shock.";
+        if (emotiontype.equals("calm") || emotiontype.equals("happy") || emotiontype.equals("fun") || emotiontype.equals("wonderful") || emotiontype.equals("laugh") || emotiontype.equals("angel") || emotiontype.equals("love") || emotiontype.equals("joyful") ) {
+            colorDescription = "Use warm yellow tones";
+        } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset")){
+            colorDescription = "Use cool blue tones";
+        } else if (emotiontype.equals("unhappy") || emotiontype.equals("unexpected") || emotiontype.equals("demon") || emotiontype.equals("angry")) {
+            colorDescription = "Use deep red tones";
+        } else if (emotiontype.equals("hard") || emotiontype.equals("shocking") || emotiontype.equals("embarrassed") || emotiontype.equals("hardday") || emotiontype.equals("sick")) {
+            colorDescription = "Use calming green tones";
+        } else if (emotiontype.equals("surprise") || emotiontype.equals("tears")) {
+            colorDescription = "Use warm orange tones";
         } else {
             // 감정 타입에 어울리는 문장으로 표현
             colorDescription = "Choose colors that best resonate with the emotions expressed in the content: " + emotiontype + ". These colors should align with the mood and feelings conveyed by the user, creating a harmonious and fitting representation of their emotional state. And,";
         }
 
         String finalResponse = colorDescription +
-                " Note: for Therapy. Simple. Abstract. Aesthetic. Beautiful. Dynamic elements. Soothing. Natural. Soft. Psychological healing. Evoke beauty, harmony, balance, Gentle flow. Calming. Timeless. bright, hopeful";
+                " Note: Abstract. Aesthetic. Beautiful. Dynamic elements. Simple. Soothing. Natural. Soft. Psychological healing. Evoke beauty, harmony, balance, Gentle flow. Calming. Timeless. bright, hopeful";
 
         log.info("finalResponse: {}", finalResponse);
 
@@ -251,43 +251,93 @@ public class DiaryController {
     }
 
     /* TTS 위한 info 텍스트 생성 */
-    private String getTherapyMessageFromGPT(String contents) {
-        // GPT-4 API 요청 로직을 사용하여 사용자 일기 내용을 분석
-        String gptApiUrl = "https://api.openai.com/v1/chat/completions";  // GPT Chat 모델 엔드포인트
+    private String getTherapyMessageFromGPT(String contents, String emotiontype) {
+        emotiontype = emotiontype.toLowerCase();
 
+        // 각 감정 유형에 따른 메시지 목록 정의
+        String[] positiveMessages = {
+                " 기분을 더 좋게 만들어 줄 노란색 톤의 테라피 아트를 제공해 드릴게요!",
+                " 긍정적인 감정을 자극할 수 있는 노란색 톤의 테라피 아트를 제공해 드릴게요!",
+                " 활력을 더 불어 넣어 줄 수 있는 노란색 톤의 테라피 아트를 제공해 드릴게요!"
+        };
+
+        String[] negativeMessages = {
+                " 심리적 안정을 유도할 수 있는 파란색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 감정을 진정시키는 데 도움을 줄 수 있는 파란색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 슬픈 감정을 완화시킬 수 있는 파란색 톤의 테라피 아트를 제공해 드릴게요."
+        };
+
+        String[] redToneMessages = {
+                " 교감 신경을 자극해 부정적인 감정을 해소할 수 있도록 빨간색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 에너지를 발산시켜 부정적인 감정을 해소할 수 있도록 빨간색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 부정적인 감정을 완화시킬 수 있도록 빨간색 톤의 테라피 아트를 제공해 드릴게요."
+        };
+
+        String[] greenToneMessages = {
+                " 긴장 완화를 위한 초록색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 심신의 안정에 효과적인 초록색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 차분한 감정을 유지하는 데 도움을 줄 수 있는 초록색 톤의 테라피 아트를 제공해 드릴게요."
+        };
+
+        String[] orangeToneMessages = {
+                " 감정을 안정시킬 수 있도록 따뜻한 감각을 제공할 수 있는 주황색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 마음의 평화를 유도할 수 있는 주황색 톤의 테라피 아트를 제공해 드릴게요.",
+                " 심리적 안정을 도울 수 있는 주황색 톤의 테라피 아트를 제공해 드릴게요."
+        };
+
+        String defaltMessage = " 아트모의 테라피 아트로 오늘도 좋은 하루 보내세요!";
+
+        // 랜덤 메시지 선택 로직
+        Random random = new Random();
+        String selectedMessage = "";
+
+        if (emotiontype.equals("happy") || emotiontype.equals("fun") || emotiontype.equals("wonderful") ||
+                emotiontype.equals("laugh") || emotiontype.equals("angel") || emotiontype.equals("love") || emotiontype.equals("joyful") || emotiontype.equals("calm")) {
+            selectedMessage = positiveMessages[random.nextInt(positiveMessages.length)];
+        } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset")) {
+            selectedMessage = negativeMessages[random.nextInt(negativeMessages.length)];
+        } else if (emotiontype.equals("embarrassed") || emotiontype.equals("unhappy") || emotiontype.equals("demon") || emotiontype.equals("angry") || emotiontype.equals("unexpected")) {
+            selectedMessage = redToneMessages[random.nextInt(redToneMessages.length)];
+        } else if (emotiontype.equals("shocking") || emotiontype.equals("hardday") || emotiontype.equals("sick") || emotiontype.equals("hard")) {
+            selectedMessage = greenToneMessages[random.nextInt(greenToneMessages.length)];
+        } else if (emotiontype.equals("surprise") || emotiontype.equals("tears")) {
+            selectedMessage = orangeToneMessages[random.nextInt(orangeToneMessages.length)];
+        } else {
+            selectedMessage = " 당신의 감정을 분석한 결과를 바탕으로 테라피 아트를 제공해 드릴게요!";
+        }
+
+        String gptApiUrl = "https://api.openai.com/v1/chat/completions";
         RestTemplate restTemplate = new RestTemplate();
 
-        // GPT-4 대화 모델 형식에 맞게 요청 본문 구성
         Map<String, Object> request = new HashMap<>();
-        request.put("model", "gpt-4");  // GPT-4 모델 사용
+        request.put("model", "gpt-4");
         request.put("messages", List.of(
                 Map.of("role", "system", "content",
                         "You are a helpful assistant that provides emotional support based on the user's diary."),
                 Map.of("role", "user", "content",
-                        "넌 테라피스트야. 다음 일기를 분석하고, 사용자의 감정과 일기에 공감하고 격려하는 두 개의 짧은 한국어 문장을 제공해. 조건: 첫 번째 문장은 감정과 일기에 공감하는 단순한 문장, 두 번째 문장은 '~감정을 위한 테라피 아트입니다.'로 끝나야 하며, 앞부분은 사용자의 감정에 따라 맞추어져야 해. 세 번째 문장은 '아트모의 테라피 아트로 오늘도 좋은 하루 보내세요!'라고 끝내. 내용: " + contents)
+                        "내용에서 반영된 사용자의 감정을 바탕으로, 격려하는 짧은 응원을 제공해. 조건: 한 문장. 따옴표 금지. 존댓말로. 내용: " + contents)
         ));
         request.put("max_tokens", 200);
 
-        // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + openaiApiKey);
         headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
-        // 요청 엔티티 생성
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
-
-        // GPT API 호출
         ResponseEntity<Map> response = restTemplate.postForEntity(gptApiUrl, entity, Map.class);
 
-        // GPT로부터 받은 응답에서 choices 내의 content 부분 추출
         List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
         Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
         String gptContent = (String) message.get("content");
 
-        // GPT 응답을 반환
         log.info("gptContent: {}", gptContent);
-        return gptContent;  // GPT 응답 반환
+
+        // gptContent, selectedMessage, defaltMessage 이어붙인 최종 텍스트
+        String finalMessage = gptContent + selectedMessage + defaltMessage;
+
+        return finalMessage;
     }
+
 
 
     /**
@@ -337,15 +387,16 @@ public class DiaryController {
         metadata.setContentType("video/mp4");
         String s3VideoUrl = s3Uploader.upload(videoInputStream, "emotion-videos/" + savedImage.getImgId() + ".mp4", metadata);
 
+        // Step + info comment 생성
+        String infoComment = getTherapyMessageFromGPT(contents, emotiontype);
+
         // Step 10: 비디오 DB 저장
         Video video = new Video();
         video.setImage(savedImage);
         video.setVideoUrl(s3VideoUrl);
         video.setCreatedAt(savedImage.getCreatedAt());
+        video.setInfoComment(infoComment);
         videoService.save(video);
-
-        // Step 11: info comment 생성
-        String infoComment = getTherapyMessageFromGPT(contents);
 
         // 응답 생성
         Map<String, String> response = new HashMap<>();
@@ -668,29 +719,29 @@ public class DiaryController {
             case "angel":
             case "love":
             case "joyful":
+            case "calm":
                 return "yellow";  // Positive 감정 -> 노란색
 
-            case "unhappy":
             case "sorrow":
             case "depressed":
-            case "hard":
             case "sad":
             case "sadlaugh":
+            case "upset":
                 return "blue";  // Negative 감정 -> 파란색
 
+            case "unexpected":
             case "demon":
             case "angry":
-            case "upset":
+            case "unhappy":
+            case "embarrassed":
                 return "red";  // Stress 감정 -> 빨간색
 
             case "surprise":
-            case "unexpected":
             case "tears":
+            case "hard":
                 return "orange";  // Anxiety 감정 -> 오렌지색
 
-            case "calm":
             case "shocking":
-            case "embarrassed":
             case "hardday":
             case "sick":
                 return "green";  // NeedRest 감정 -> 초록색
