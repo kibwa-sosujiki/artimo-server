@@ -33,7 +33,7 @@ public class Video implements Serializable {
     @Column(name = "video_url", length = 1000)
     private String videoUrl;
 
-    @Column(name = "info_comment", length = 1000)
+    @Column(name = "info_comment", length = 2000)
     private String infoComment;
 
     @ManyToOne
