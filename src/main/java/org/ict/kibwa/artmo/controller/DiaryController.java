@@ -23,6 +23,7 @@ import org.ict.kibwa.artmo.service.DiaryService;
 import org.ict.kibwa.artmo.service.S3Uploader;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -205,8 +206,8 @@ public class DiaryController {
         metadata.setContentLength(pngData.length);
         metadata.setContentType("image/png");
 
-        // 파일 이름 생성 (경로 포함)
-        String fileName = s3Path + "/" + file.getName();
+        // 새로운 파일 이름 생성
+        String fileName = createFileNameFromUrl(localFilePath, s3Path, "png");
         log.info("Uploading to S3 with file name: {}", fileName);
 
         // ByteArrayInputStream으로 S3에 업로드
@@ -653,6 +654,55 @@ public class DiaryController {
             log.error("Failed to set light color.");
             return ResponseEntity.status(500).body("Failed to set light color.");
         }
+    }
+
+    @PostMapping("/tts")
+    public ResponseEntity<ByteArrayResource> generateSpeech() {
+        String apiUrl = "https://api.openai.com/v1/audio/speech";
+        String message = "안녕하세요? 그대의 마음을 다독여 줄 아트모입니다!";
+
+        // Set up the RestTemplate and headers for the request
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + openaiApiKey);  // OpenAI API key
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Prepare the body with the model, text, and voice options
+        Map<String, Object> body = new HashMap<>();
+        body.put("model", "tts-1");
+        body.put("voice", "shimmer");
+        body.put("input", message);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        try {
+            // Make a POST request to the OpenAI speech API
+            ResponseEntity<byte[]> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, byte[].class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                // Return the audio file in the response as an MP3
+                ByteArrayResource resource = new ByteArrayResource(response.getBody());
+
+                HttpHeaders responseHeaders = new HttpHeaders();
+                responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=speech.mp3");
+
+                return ResponseEntity.ok()
+                        .headers(responseHeaders)
+                        .contentLength(response.getBody().length)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(response.getStatusCode()).body(null);
+            }
+        } catch (Exception e) {
+            log.error("Error generating speech: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    private String createFileNameFromUrl(String imageUrl, String s3Path, String extension) {
+        String uuid = UUID.randomUUID().toString(); // UUID를 이용해 고유한 파일 이름 생성
+        return s3Path + "/" + uuid + "." + extension;
     }
 
     private boolean setLightColor(String color) {
