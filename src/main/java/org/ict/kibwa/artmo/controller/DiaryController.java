@@ -785,6 +785,7 @@ public class DiaryController {
             case "sad":
             case "sadlaugh":
             case "upset":
+            case "tears":
                 return "blue";  // Negative 감정 -> 파란색
 
             case "unexpected":
@@ -795,7 +796,6 @@ public class DiaryController {
                 return "red";  // Stress 감정 -> 빨간색
 
             case "surprise":
-            case "tears":
             case "hard":
                 return "orange";  // Anxiety 감정 -> 오렌지색
 
