@@ -160,13 +160,13 @@ public class DiaryController {
         // 감정에 따라 색깔과 이미지 설명 설정
         if (emotiontype.equals("calm") || emotiontype.equals("happy") || emotiontype.equals("fun") || emotiontype.equals("wonderful") || emotiontype.equals("laugh") || emotiontype.equals("angel") || emotiontype.equals("love") || emotiontype.equals("joyful") ) {
             colorDescription = "Use warm yellow tones";
-        } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset")){
+        } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset") || emotiontype.equals("tears")){
             colorDescription = "Use cool blue tones";
         } else if (emotiontype.equals("unhappy") || emotiontype.equals("unexpected") || emotiontype.equals("demon") || emotiontype.equals("angry")) {
             colorDescription = "Use deep red tones";
         } else if (emotiontype.equals("hard") || emotiontype.equals("shocking") || emotiontype.equals("embarrassed") || emotiontype.equals("hardday") || emotiontype.equals("sick")) {
             colorDescription = "Use calming green tones";
-        } else if (emotiontype.equals("surprise") || emotiontype.equals("tears")) {
+        } else if (emotiontype.equals("surprise")) {
             colorDescription = "Use warm orange tones";
         } else {
             // 감정 타입에 어울리는 문장으로 표현
