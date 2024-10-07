@@ -162,12 +162,10 @@ public class DiaryController {
             colorDescription = "Use warm yellow tones";
         } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset") || emotiontype.equals("tears")){
             colorDescription = "Use cool blue tones";
-        } else if (emotiontype.equals("unhappy") || emotiontype.equals("unexpected") || emotiontype.equals("demon") || emotiontype.equals("angry")) {
+        } else if (emotiontype.equals("unhappy") || emotiontype.equals("unexpected") || emotiontype.equals("demon") || emotiontype.equals("angry") || emotiontype.equals("surprise")) {
             colorDescription = "Use deep red tones";
         } else if (emotiontype.equals("hard") || emotiontype.equals("shocking") || emotiontype.equals("embarrassed") || emotiontype.equals("hardday") || emotiontype.equals("sick")) {
             colorDescription = "Use calming green tones";
-        } else if (emotiontype.equals("surprise")) {
-            colorDescription = "Use warm orange tones";
         } else {
             // 감정 타입에 어울리는 문장으로 표현
             colorDescription = "Choose colors that best resonate with the emotions expressed in the content: " + emotiontype + ". These colors should align with the mood and feelings conveyed by the user, creating a harmonious and fitting representation of their emotional state. And,";
@@ -280,12 +278,6 @@ public class DiaryController {
                 " 차분한 감정을 유지하는 데 도움을 줄 수 있는 초록색 톤의 테라피 아트를 제공해 드릴게요."
         };
 
-        String[] orangeToneMessages = {
-                " 감정을 안정시킬 수 있도록 따뜻한 감각을 제공할 수 있는 주황색 톤의 테라피 아트를 제공해 드릴게요.",
-                " 마음의 평화를 유도할 수 있는 주황색 톤의 테라피 아트를 제공해 드릴게요.",
-                " 심리적 안정을 도울 수 있는 주황색 톤의 테라피 아트를 제공해 드릴게요."
-        };
-
         String defaltMessage = " 아트모의 테라피 아트로 오늘도 좋은 하루 보내세요!";
 
         // 랜덤 메시지 선택 로직
@@ -295,14 +287,12 @@ public class DiaryController {
         if (emotiontype.equals("happy") || emotiontype.equals("fun") || emotiontype.equals("wonderful") ||
                 emotiontype.equals("laugh") || emotiontype.equals("angel") || emotiontype.equals("love") || emotiontype.equals("joyful") || emotiontype.equals("calm")) {
             selectedMessage = positiveMessages[random.nextInt(positiveMessages.length)];
-        } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset")) {
+        } else if (emotiontype.equals("sorrow") || emotiontype.equals("depressed") || emotiontype.equals("sad") || emotiontype.equals("sadlaugh") || emotiontype.equals("upset") || emotiontype.equals("tears")) {
             selectedMessage = negativeMessages[random.nextInt(negativeMessages.length)];
         } else if (emotiontype.equals("embarrassed") || emotiontype.equals("unhappy") || emotiontype.equals("demon") || emotiontype.equals("angry") || emotiontype.equals("unexpected")) {
             selectedMessage = redToneMessages[random.nextInt(redToneMessages.length)];
-        } else if (emotiontype.equals("shocking") || emotiontype.equals("hardday") || emotiontype.equals("sick") || emotiontype.equals("hard")) {
+        } else if (emotiontype.equals("shocking") || emotiontype.equals("hardday") || emotiontype.equals("sick") || emotiontype.equals("hard") || emotiontype.equals("surprise")) {
             selectedMessage = greenToneMessages[random.nextInt(greenToneMessages.length)];
-        } else if (emotiontype.equals("surprise") || emotiontype.equals("tears")) {
-            selectedMessage = orangeToneMessages[random.nextInt(orangeToneMessages.length)];
         } else {
             selectedMessage = " 당신의 감정을 분석한 결과를 바탕으로 테라피 아트를 제공해 드릴게요!";
         }
