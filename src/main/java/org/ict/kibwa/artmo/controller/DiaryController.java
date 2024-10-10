@@ -785,10 +785,8 @@ public class DiaryController {
             case "embarrassed":
                 return "red";  // Stress 감정 -> 빨간색
 
-            case "surprise":
             case "hard":
-                return "orange";  // Anxiety 감정 -> 오렌지색
-
+            case "surprise":
             case "shocking":
             case "hardday":
             case "sick":
@@ -805,10 +803,6 @@ public class DiaryController {
             case "green":
                 values.put("hue", 30);
                 values.put("saturation", 80);
-                break;
-            case "orange":
-                values.put("hue", 10);
-                values.put("saturation", 100);
                 break;
             case "red":
                 values.put("hue", 100);
@@ -845,9 +839,11 @@ public class DiaryController {
                 emotionType.equalsIgnoreCase("laugh") ||
                 emotionType.equalsIgnoreCase("angel") ||
                 emotionType.equalsIgnoreCase("love") ||
+                emotionType.equalsIgnoreCase("hard") ||
                 emotionType.equalsIgnoreCase("surprise") ||
-                emotionType.equalsIgnoreCase("tears") ||
-                emotionType.equalsIgnoreCase("unexpected")) {
+                emotionType.equalsIgnoreCase("shocking") ||
+                emotionType.equalsIgnoreCase("sick") ||
+                emotionType.equalsIgnoreCase("hardday")) {
 
             // 스위트 피치 향 켜기, 플라워샵 향 끄기
             apiUrlOn = "https://api.smartthings.com/v1/devices/" + peachdiffApiKey + "/commands";
